@@ -30,6 +30,35 @@ CI (`.github/workflows/ci.yml`): lint, Prettier, typecheck, tests and build on e
 pushes to `develop`/`main`. Rolling a feature out to some cafés first is done with data
 (release channel / feature flags in the database), not with branches.
 
+## How a request finds its café
+
+`src/proxy.ts` reads the Host header (`src/lib/routing`, unit-tested) with
+`NEXT_PUBLIC_ROOT_DOMAIN` as the root:
+
+| Host                                          | Result                                                        |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| `serbi.me`, `www.serbi.me`                    | root site (`src/app/*`)                                       |
+| `<slug>.serbi.me/<path>`                      | rewritten to `/tenant/<slug>/<path>` — the URL stays the same |
+| `a.b.serbi.me`, malformed slug                | 404                                                           |
+| direct `/tenant/*` on any host                | 404 (internal paths)                                          |
+| other hosts (Vercel previews): `?cafe=<slug>` | shows that café and remembers it (cookie); `?cafe=` resets    |
+
+Links inside café pages are host-relative (`/menu`), never `/tenant/<slug>/menu`.
+
+## Café data
+
+Café pages read `get_public_cafe(slug)` (`src/lib/data/services/public-cafes.ts`): only what
+the café shows its customers — name, colours, language, location, phone, email, Facebook,
+Instagram. It works for signed-out visitors; the `cafes` table itself stays members-only.
+Results are cached per café (`cacheLife("minutes")`, tag `cafe:<slug>`), so changes saved in
+the owner's Settings appear within about a minute.
+
+| Café         | Page                                                                                      |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| active       | café home in its own colours (menu card, contact & social links)                          |
+| suspended    | "Temporarily unavailable" (name + colours only)                                           |
+| unknown slug | "This café doesn't exist" (`noindex`; streamed, so HTTP 200 — see Next.js "Status codes") |
+
 ## Local development
 
 ```bash
