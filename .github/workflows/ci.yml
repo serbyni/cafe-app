@@ -48,4 +48,10 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: "1"
 
-  # Deploy jobs (develop → *.dev.serbi.me, main → *.serbi.me) are added with the Vercel setup.
+  deploy:
+    name: Deploy (development)
+    needs: [quality, build]
+    # Runs once the Vercel project is configured (repo variable CAFE_ROOT_DOMAIN set).
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && vars.CAFE_ROOT_DOMAIN != ''
+    uses: ./.github/workflows/deploy-vercel.yml
+    secrets: inherit
