@@ -43,8 +43,21 @@ pushes to `develop`/`main`. Rolling a feature out to some cafés first is done w
 | direct `/tenant/*` on any host                | 404 (internal paths)                                          |
 | other hosts (Vercel previews): `?cafe=<slug>` | shows that café and remembers it (cookie); `?cafe=` resets    |
 
-Links inside café pages are host-relative (`/menu`), never `/tenant/<slug>/menu`. Whether the
-café exists is checked against the database by the café pages.
+Links inside café pages are host-relative (`/menu`), never `/tenant/<slug>/menu`.
+
+## Café data
+
+Café pages read `get_public_cafe(slug)` (`src/lib/data/services/public-cafes.ts`): only what
+the café shows its customers — name, colours, language, location, phone, email, Facebook,
+Instagram. It works for signed-out visitors; the `cafes` table itself stays members-only.
+Results are cached per café (`cacheLife("minutes")`, tag `cafe:<slug>`), so changes saved in
+the owner's Settings appear within about a minute.
+
+| Café         | Page                                                                                      |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| active       | café home in its own colours (menu card, contact & social links)                          |
+| suspended    | "Temporarily unavailable" (name + colours only)                                           |
+| unknown slug | "This café doesn't exist" (`noindex`; streamed, so HTTP 200 — see Next.js "Status codes") |
 
 ## Local development
 
