@@ -6,6 +6,20 @@ export const CAFE_ROUTE_PREFIX = "/tenant";
 export const NOT_FOUND_PATH = "/__not-found";
 /** Cookie remembering the preview café on non-production hosts (Vercel previews). */
 export const PREVIEW_COOKIE = "serbi_preview_cafe";
+/** Cookie remembering the customer's table (host-only: one café). Set from ?table=<code>. */
+export const TABLE_COOKIE = "serbi_table";
+/** How long a scanned table is remembered (a visit, not forever). */
+export const TABLE_COOKIE_MAX_AGE = 60 * 60 * 4;
+
+/**
+ * ?table=<code> from a QR scan: the code to remember (upper-case), "" to forget the table
+ * (empty or invalid value), or null when the parameter is absent.
+ */
+export function tableParam(search: URLSearchParams): string | null {
+  if (!search.has("table")) return null;
+  const code = (search.get("table") ?? "").trim().toUpperCase();
+  return /^[A-HJKMNP-Z2-9]{6}$/.test(code) ? code : "";
+}
 
 export type RouteDecision =
   | { action: "next" }
