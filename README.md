@@ -30,6 +30,22 @@ CI (`.github/workflows/ci.yml`): lint, Prettier, typecheck, tests and build on e
 pushes to `develop`/`main`. Rolling a feature out to some cafés first is done with data
 (release channel / feature flags in the database), not with branches.
 
+## How a request finds its café
+
+`src/proxy.ts` reads the Host header (`src/lib/routing`, unit-tested) with
+`NEXT_PUBLIC_ROOT_DOMAIN` as the root:
+
+| Host                                          | Result                                                        |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| `serbi.me`, `www.serbi.me`                    | root site (`src/app/*`)                                       |
+| `<slug>.serbi.me/<path>`                      | rewritten to `/tenant/<slug>/<path>` — the URL stays the same |
+| `a.b.serbi.me`, malformed slug                | 404                                                           |
+| direct `/tenant/*` on any host                | 404 (internal paths)                                          |
+| other hosts (Vercel previews): `?cafe=<slug>` | shows that café and remembers it (cookie); `?cafe=` resets    |
+
+Links inside café pages are host-relative (`/menu`), never `/tenant/<slug>/menu`. Whether the
+café exists is checked against the database by the café pages.
+
 ## Local development
 
 ```bash
