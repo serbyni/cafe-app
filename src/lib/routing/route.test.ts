@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NOT_FOUND_PATH, routeRequest } from "./route";
+import { NOT_FOUND_PATH, routeRequest, tableParam } from "./route";
 
 const base = { rootDomain: "serbi.me", search: "" };
 
@@ -56,5 +56,18 @@ describe("routeRequest", () => {
     ).toEqual({ action: "next" });
     // bad slug ignored
     expect(routeRequest({ ...preview, previewParam: "../x" })).toEqual({ action: "next" });
+  });
+});
+
+describe("tableParam", () => {
+  const q = (s: string) => new URLSearchParams(s);
+  it("reads a scanned table code", () => {
+    expect(tableParam(q("table=k7p2x9"))).toBe("K7P2X9");
+    expect(tableParam(q("x=1"))).toBeNull();
+  });
+  it("forgets the table for empty or invalid codes", () => {
+    expect(tableParam(q("table="))).toBe("");
+    expect(tableParam(q("table=../../x"))).toBe("");
+    expect(tableParam(q("table=O0IL11"))).toBe("");
   });
 });

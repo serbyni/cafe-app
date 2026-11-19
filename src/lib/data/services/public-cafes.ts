@@ -2,7 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { themeSeed } from "@/lib/cafes/theme";
 import { isCafeSlug } from "@/lib/routing/host";
-import { createPublicClient } from "@/lib/supabase/public";
+import { rpcPublic } from "@/lib/supabase/public";
 import { parseWebsite, type Website } from "@/lib/website/schema";
 import { unwrap } from "../errors";
 
@@ -40,10 +40,7 @@ async function cachedPublicCafe(slug: string): Promise<PublicCafe | null> {
   "use cache";
   cacheTag(cafeTag(slug));
   cacheLife("minutes");
-  const [r] = unwrap(
-    "get_public_cafe",
-    await createPublicClient().rpc("get_public_cafe", { p_slug: slug }),
-  );
+  const [r] = unwrap("get_public_cafe", await rpcPublic("get_public_cafe", { p_slug: slug }));
   if (!r) return null;
   const base = { slug: r.slug, name: r.name, seed: themeSeed(r.theme), locale: r.default_locale };
   if (r.status !== "active") return { ...base, status: "suspended" };
@@ -64,12 +61,31 @@ async function cachedPublicCafe(slug: string): Promise<PublicCafe | null> {
   };
 }
 
+/** Name of a live table code of this café ("T7"), cached like the café data. */
+async function cachedTableLabel(slug: string, code: string): Promise<string | null> {
+  "use cache";
+  cacheTag(cafeTag(slug));
+  cacheLife("minutes");
+  const [r] = unwrap(
+    "get_public_table",
+    await rpcPublic("get_public_table", { p_slug: slug, p_code: code }),
+  );
+  return r?.label ?? null;
+}
+
 /** Public café data for the café pages (anyone, signed in or not). */
 export class PublicCafesService {
   /** The café with this address, or null when it does not exist. */
   get(slug: string): Promise<PublicCafe | null> {
     if (!isCafeSlug(slug)) return Promise.resolve(null);
     return cachedPublicCafe(slug);
+  }
+
+  /** Table name for a scanned table code, or null (unknown, retired or switched off). */
+  tableLabel(slug: string, code: string | undefined): Promise<string | null> {
+    if (!code || !isCafeSlug(slug) || !/^[A-HJKMNP-Z2-9]{6}$/.test(code))
+      return Promise.resolve(null);
+    return cachedTableLabel(slug, code);
   }
 }
 

@@ -1,15 +1,31 @@
-import { createClient } from "@supabase/supabase-js";
 import { publicEnv } from "@/lib/env";
-import type { Database } from "./database.types";
+import type { DbArgs, DbFunctionName, DbReturns } from "./database.types";
 
-/** Session-less client (publishable key only) for public data inside "use cache" functions. */
-export function createPublicClient() {
+/**
+ * Calls a PUBLIC database function (granted to anon) over HTTP with the publishable key only —
+ * no session, no client state. Used inside "use cache" functions: a plain fetch keeps every
+ * cached call self-contained (supabase-js shares internal state between calls).
+ */
+export async function rpcPublic<F extends DbFunctionName>(
+  fn: F,
+  args: DbArgs<F>,
+): Promise<{ data: DbReturns<F> | null; error: { code: string; message: string } | null }> {
   const env = publicEnv();
-  return createClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    {
-      auth: { persistSession: false, autoRefreshToken: false },
+  const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: {
+      apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(args),
+    cache: "no-store", // caching is done by the "use cache" caller
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
+    return {
+      data: null,
+      error: { code: body.code ?? String(res.status), message: body.message ?? res.statusText },
+    };
+  }
+  return { data: (await res.json()) as DbReturns<F>, error: null };
 }

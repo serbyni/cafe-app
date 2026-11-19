@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
-import { PREVIEW_COOKIE, routeRequest } from "@/lib/routing/route";
+import {
+  PREVIEW_COOKIE,
+  TABLE_COOKIE,
+  TABLE_COOKIE_MAX_AGE,
+  routeRequest,
+  tableParam,
+} from "@/lib/routing/route";
 
 /**
  * Multi-tenant routing: picks the site from the Host header (see src/lib/routing).
@@ -21,6 +27,35 @@ export function proxy(request: NextRequest) {
   if (decision.action === "next") {
     const res = NextResponse.next();
     if (previewParam === "") res.cookies.delete(PREVIEW_COOKIE); // ?cafe= → back to root
+    return res;
+  }
+
+  // QR scan → <café>/menu?table=<code>: remember the table for this café (host-only cookie) and
+  // continue on the clean URL, so the code is not kept in the address bar or shared links.
+  const table = tableParam(url.searchParams);
+  if (table !== null) {
+    const clean = new URL(url);
+    clean.searchParams.delete("table");
+    const res = NextResponse.redirect(clean, 303);
+    if (table) {
+      res.cookies.set(TABLE_COOKIE, table, {
+        path: "/",
+        httpOnly: true,
+        secure: url.protocol === "https:",
+        sameSite: "lax",
+        maxAge: TABLE_COOKIE_MAX_AGE,
+      });
+    } else {
+      res.cookies.delete(TABLE_COOKIE);
+    }
+    if (decision.action === "rewrite-and-remember") {
+      res.cookies.set(PREVIEW_COOKIE, decision.slug, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 12,
+      });
+    }
     return res;
   }
 

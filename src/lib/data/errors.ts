@@ -49,7 +49,7 @@ export function toDataErrorCode(error: Pick<PostgrestError, "code" | "message">)
  */
 export function unwrap<T>(
   operation: string,
-  result: { data: T | null; error: PostgrestError | null },
+  result: { data: T | null; error: Pick<PostgrestError, "code" | "message"> | null },
 ): T {
   if (result.error) {
     const code = toDataErrorCode(result.error);
