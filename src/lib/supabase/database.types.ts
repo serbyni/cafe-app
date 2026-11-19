@@ -319,6 +319,7 @@ export type Database = {
           slug: string;
           status: string;
           theme: Json;
+          website: Json;
         }[];
       };
       get_my_owner: {
