@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { themeSeed } from "@/lib/cafes/theme";
 import { isCafeSlug } from "@/lib/routing/host";
 import { createPublicClient } from "@/lib/supabase/public";
+import { parseWebsite, type Website } from "@/lib/website/schema";
 import { unwrap } from "../errors";
 
 /** What a café shows its customers (get_public_cafe). Suspended cafés: name + colours only. */
@@ -23,6 +24,8 @@ export type PublicCafe =
       email: string | null;
       facebook: string | null;
       instagram: string | null;
+      /** Published website; null = the owner never published one (the page shows defaults). */
+      website: Website | null;
     }
   | { status: "suspended"; slug: string; name: string; seed: string; locale: string };
 
@@ -31,7 +34,7 @@ export const cafeTag = (slug: string) => `cafe:${slug}`;
 
 /**
  * Cached per café ("minutes" profile: refreshed every minute), so changes saved in the
- * owner's Settings appear within about a minute. Session-less client: public data only.
+ * owner's Settings (or a published website) appear within about a minute. Session-less client: public data only.
  */
 async function cachedPublicCafe(slug: string): Promise<PublicCafe | null> {
   "use cache";
@@ -57,6 +60,7 @@ async function cachedPublicCafe(slug: string): Promise<PublicCafe | null> {
     email: r.contact_email,
     facebook: r.facebook_url,
     instagram: r.instagram_url,
+    website: parseWebsite(r.website),
   };
 }
 
