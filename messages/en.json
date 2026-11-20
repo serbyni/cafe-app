@@ -14,15 +14,7 @@
     "facebook": "Facebook",
     "suspendedTitle": "Temporarily unavailable",
     "suspendedBody": "This café's page is not available right now. Please check again later.",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ]
+    "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
   },
   "home": {
     "viewMenu": "View menu",

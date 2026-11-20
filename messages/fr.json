@@ -14,15 +14,7 @@
     "facebook": "Facebook",
     "suspendedTitle": "Temporairement indisponible",
     "suspendedBody": "La page de ce café n'est pas disponible pour le moment. Revenez un peu plus tard.",
-    "days": [
-      "Lundi",
-      "Mardi",
-      "Mercredi",
-      "Jeudi",
-      "Vendredi",
-      "Samedi",
-      "Dimanche"
-    ]
+    "days": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
   },
   "home": {
     "viewMenu": "Voir le menu",
