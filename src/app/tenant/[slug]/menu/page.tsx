@@ -5,6 +5,9 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SiteFooter, SiteHeader, SuspendedCafe } from "@/components/cafe/site";
 import { MenuView } from "@/components/menu/menu-view";
+import { CartBar } from "@/components/order/cart-bar";
+import { CartProvider } from "@/components/order/cart-context";
+import { TrackOrder } from "@/components/order/track-order";
 import { Icon } from "@/components/ui/icon";
 import { applyCafeLocale } from "@/i18n/cafe-locale";
 import { cafePalette } from "@/lib/cafes/theme";
@@ -38,6 +41,11 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
   const raw = await publicCafes.menu(slug);
   const menu = raw ? translateMenu(raw, lang) : null;
   const hasMenu = !!menu && menu.categories.length > 0;
+  // Ordering: owner's switch + opening hours (never cached).
+  const ordering = hasMenu ? await publicCafes.ordering(slug) : null;
+  const canOrder = !!ordering?.acceptingOrders && ordering.openNow;
+  const to = await getTranslations("order");
+  const days = to("weekdays").split("|");
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -71,8 +79,27 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
             </form>
           </section>
         ) : null}
+        <TrackOrder slug={slug} c={c} />
+        {ordering?.acceptingOrders && !ordering.openNow ? (
+          <p
+            role="status"
+            className="flex items-center gap-sm rounded-2xl bg-surface-container p-md text-body-sm text-on-surface"
+          >
+            <Icon name="schedule" className="text-icon-lg" />
+            {ordering.opensAt !== undefined && ordering.opensDay !== undefined
+              ? to("closedOpens", { day: days[ordering.opensDay], time: ordering.opensAt })
+              : to("closedNow")}
+          </p>
+        ) : null}
         {hasMenu ? (
-          <MenuView menu={menu} c={c} />
+          <CartProvider slug={slug}>
+            <MenuView menu={menu} c={c} canOrder={canOrder} />
+            {canOrder ? (
+              <CartBar slug={slug} currency={menu.currency} c={c} tableLabel={table} />
+            ) : null}
+            {/* Room for the sticky "View order" bar. */}
+            {canOrder ? <div className="h-20" aria-hidden="true" /> : null}
+          </CartProvider>
         ) : (
           <section className="rounded-2xl bg-surface-container-lowest p-lg text-center shadow-card-warm">
             <span

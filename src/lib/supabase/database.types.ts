@@ -302,6 +302,19 @@ export type Database = {
       };
       get_my_onboarding: { Args: never; Returns: Json };
       get_public_menu: { Args: { p_slug: string }; Returns: Json };
+      get_public_ordering: { Args: { p_slug: string }; Returns: Json };
+      get_public_order: { Args: { p_slug: string; p_token: string }; Returns: Json };
+      place_order: {
+        Args: {
+          p_customer_name: string;
+          p_items: Json;
+          p_locale: string;
+          p_note: string;
+          p_slug: string;
+          p_table_code: string | null;
+        };
+        Returns: Json;
+      };
       get_public_table: {
         Args: { p_code: string; p_slug: string };
         Returns: { label: string }[];

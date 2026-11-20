@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MENU_TAGS, type MenuTag } from "./schema";
+import { MENU_TAGS, optionsSchema, type MenuTag, type OptionGroup } from "./schema";
 
 /* Customer menu as returned by get_public_menu (visible categories, visible priced items). */
 
@@ -35,6 +35,7 @@ export const publicMenuSchema = z.object({
           isAvailable: z.boolean(),
           isFeatured: z.boolean(),
           i18n: i18n.optional(),
+          options: optionsSchema.default([]),
         }),
       ),
     }),
@@ -66,7 +67,18 @@ export function translateMenu(menu: PublicMenu, lang: string): PublicMenu {
         ...item,
         name: pick(item.i18n, lang, "name", item.name),
         description: pick(item.i18n, lang, "description", item.description),
+        options: translateOptions(item.options, lang),
       })),
     })),
   };
+}
+
+/** Option and choice names in the visitor's language (main text where not translated). */
+function translateOptions(groups: OptionGroup[], lang: string): OptionGroup[] {
+  const name = (tr: OptionGroup["i18n"], main: string) => tr[lang]?.name?.trim() || main;
+  return groups.map((g) => ({
+    ...g,
+    name: name(g.i18n, g.name),
+    choices: g.choices.map((c) => ({ ...c, name: name(c.i18n, c.name) })),
+  }));
 }

@@ -5,6 +5,11 @@ import { isCafeSlug } from "@/lib/routing/host";
 import { rpcPublic } from "@/lib/supabase/public";
 import { parseWebsite, type Website } from "@/lib/website/schema";
 import { publicMenuSchema, type PublicMenu } from "@/lib/menu/public";
+import { openingSchema, orderSchema, type Order } from "@/lib/orders/schema";
+import { z } from "zod";
+
+const orderingSchema = openingSchema.extend({ acceptingOrders: z.boolean() });
+export type Ordering = z.infer<typeof orderingSchema>;
 import { unwrap } from "../errors";
 
 /** What a café shows its customers (get_public_cafe). Suspended cafés: name + colours only. */
@@ -124,6 +129,53 @@ export class PublicCafesService {
     if (!code || !isCafeSlug(slug) || !/^[A-HJKMNP-Z2-9]{6}$/.test(code))
       return Promise.resolve(null);
     return cachedTableLabel(slug, code);
+  }
+
+  /** Can customers order right now? (owner's switch + opening hours; never cached). */
+  async ordering(slug: string): Promise<Ordering | null> {
+    if (!isCafeSlug(slug)) return null;
+    const { data, error } = await rpcPublic("get_public_ordering", { p_slug: slug });
+    if (error || !data) return null;
+    const parsed = orderingSchema.safeParse(data);
+    return parsed.success ? parsed.data : null;
+  }
+
+  /** A customer's order, by its secret token (never cached: it changes live). */
+  async order(slug: string, token: string): Promise<Order | null> {
+    if (!isCafeSlug(slug) || !/^[0-9a-f]{32}$/.test(token)) return null;
+    const { data, error } = await rpcPublic("get_public_order", { p_slug: slug, p_token: token });
+    if (error || !data) return null;
+    const parsed = orderSchema.safeParse(data);
+    return parsed.success ? parsed.data : null;
+  }
+
+  /** Sends a cart. Errors keep the database code (+ detail: field or item id). */
+  async placeOrder(input: {
+    slug: string;
+    tableCode: string | null;
+    customerName: string;
+    items: { itemId: string; quantity: number; choices: string[]; note: string }[];
+    note: string;
+    locale: string;
+  }): Promise<
+    { ok: true; token: string; number: number } | { ok: false; code: string; detail?: string }
+  > {
+    const { data, error } = await rpcPublic("place_order", {
+      p_slug: input.slug,
+      p_table_code: input.tableCode,
+      p_customer_name: input.customerName,
+      p_items: input.items,
+      p_note: input.note,
+      p_locale: input.locale,
+    });
+    if (error) {
+      const e = error as { message: string; details?: string };
+      return { ok: false, code: e.message, detail: e.details };
+    }
+    const r = data as { token?: string; number?: number } | null;
+    return r?.token
+      ? { ok: true, token: r.token, number: r.number ?? 0 }
+      : { ok: false, code: "unknown" };
   }
 }
 

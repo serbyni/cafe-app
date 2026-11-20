@@ -9,7 +9,10 @@ import type { DbArgs, DbFunctionName, DbReturns } from "./database.types";
 export async function rpcPublic<F extends DbFunctionName>(
   fn: F,
   args: DbArgs<F>,
-): Promise<{ data: DbReturns<F> | null; error: { code: string; message: string } | null }> {
+): Promise<{
+  data: DbReturns<F> | null;
+  error: { code: string; message: string; details?: string } | null;
+}> {
   const env = publicEnv();
   const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
@@ -21,10 +24,18 @@ export async function rpcPublic<F extends DbFunctionName>(
     cache: "no-store", // caching is done by the "use cache" caller
   });
   if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
+    const body = (await res.json().catch(() => ({}))) as {
+      code?: string;
+      message?: string;
+      details?: string;
+    };
     return {
       data: null,
-      error: { code: body.code ?? String(res.status), message: body.message ?? res.statusText },
+      error: {
+        code: body.code ?? String(res.status),
+        message: body.message ?? res.statusText,
+        details: body.details ?? undefined,
+      },
     };
   }
   return { data: (await res.json()) as DbReturns<F>, error: null };
