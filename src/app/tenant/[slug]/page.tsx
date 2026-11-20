@@ -6,7 +6,7 @@ import { Hero, WebsiteSections } from "@/components/cafe/website-sections";
 import { cafePalette } from "@/lib/cafes/theme";
 import { publicCafes } from "@/lib/data/services/public-cafes";
 import { mediaUrl } from "@/lib/media/config";
-import { defaultWebsite } from "@/lib/website/schema";
+import { SPECIALTIES_MAX, defaultWebsite } from "@/lib/website/schema";
 
 export async function generateMetadata({ params }: PageProps<"/tenant/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -39,12 +39,22 @@ async function CafeHome({ params }: { params: PageProps<"/tenant/[slug]">["param
   if (cafe.status === "suspended") return <SuspendedCafe name={cafe.name} c={c} />;
 
   const website = cafe.website ?? defaultWebsite(cafe);
+  const menu = await publicCafes.menu(slug);
+  const featured = (menu?.categories ?? [])
+    .flatMap((cat) => cat.items)
+    .filter((i) => i.isFeatured)
+    .slice(0, SPECIALTIES_MAX);
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader name={cafe.name} c={c} />
       <main className="flex-1">
         <Hero hero={website.hero} c={c} phone={cafe.phone} />
-        <WebsiteSections website={website} c={c} />
+        <WebsiteSections
+          website={website}
+          c={c}
+          featured={featured}
+          currency={menu?.currency ?? ""}
+        />
       </main>
       <SiteFooter cafe={cafe} hours={cafe.website ? website.footer.hours : null} c={c} />
     </div>
