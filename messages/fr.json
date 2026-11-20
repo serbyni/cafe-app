@@ -14,7 +14,15 @@
     "facebook": "Facebook",
     "suspendedTitle": "Temporairement indisponible",
     "suspendedBody": "La page de ce café n'est pas disponible pour le moment. Revenez un peu plus tard.",
-    "days": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    "days": [
+      "Lundi",
+      "Mardi",
+      "Mercredi",
+      "Jeudi",
+      "Vendredi",
+      "Samedi",
+      "Dimanche"
+    ]
   },
   "home": {
     "viewMenu": "Voir le menu",
@@ -110,7 +118,8 @@
       "tooMany": "Trop de commandes en même temps. Patientez un instant ou demandez au comptoir.",
       "name": "Saisissez votre prénom.",
       "table": "Le QR code de cette table n'est plus valide — demandez au personnel.",
-      "generic": "Votre commande n'a pas pu être envoyée. Réessayez."
+      "generic": "Votre commande n'a pas pu être envoyée. Réessayez.",
+      "email": "Vérifiez votre adresse e-mail."
     },
     "status": {
       "metaTitle": "Commande n°{number}",
@@ -140,6 +149,16 @@
       "reason": "Motif : {reason}",
       "paid": "Payée"
     },
-    "trackOrder": "Votre commande n°{number} — suivez-la"
+    "trackOrder": "Votre commande n°{number} — suivez-la",
+    "email": "E-mail pour votre reçu (facultatif)",
+    "emailHint": "Nous envoyons votre reçu quand le café accepte votre commande. Utilisé uniquement pour cette commande.",
+    "notify": {
+      "button": "Être prévenu sur ce téléphone",
+      "on": "Vous serez prévenu à chaque étape.",
+      "blocked": "Les notifications sont bloquées dans les réglages du navigateur.",
+      "install": "Sur iPhone, gardez cette page ouverte — les mises à jour s'affichent ici avec un son.",
+      "failed": "Impossible d'activer les notifications.",
+      "sound": "Activer le son des mises à jour"
+    }
   }
 }

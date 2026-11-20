@@ -29,6 +29,7 @@ export function CartBar({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
+  const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [error, setError] = useState<{ text: string; itemId?: string } | null>(null);
   const [pending, start] = useTransition();
@@ -55,6 +56,7 @@ export function CartBar({
       setError(null);
       const r = await placeOrderAction(slug, {
         customerName: tableLabel ? "" : name,
+        customerEmail: email.trim(),
         note,
         website,
         items: cart.cart.lines.map((l) => ({
@@ -210,6 +212,21 @@ export function CartBar({
                 </label>
               </div>
             )}
+            <label className="flex flex-col gap-xs text-body-sm text-on-surface-variant">
+              {t("email")}
+              <input
+                id="customer-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                maxLength={254}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="rounded-xl border border-surface-container-high bg-transparent px-md py-sm text-body-md text-on-surface focus:outline-none"
+                dir="ltr"
+              />
+              <span className="text-caption">{t("emailHint")}</span>
+            </label>
             {/* Bots fill every field; people never see this one. */}
             <input
               type="text"

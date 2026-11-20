@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { themeSeed } from "@/lib/cafes/theme";
 import { isCafeSlug } from "@/lib/routing/host";
+import { publicEnv } from "@/lib/env";
 import { rpcPublic } from "@/lib/supabase/public";
 import { parseWebsite, type Website } from "@/lib/website/schema";
 import { publicMenuSchema, type PublicMenu } from "@/lib/menu/public";
@@ -149,11 +150,28 @@ export class PublicCafesService {
     return parsed.success ? parsed.data : null;
   }
 
+  /** Saves this phone for push notifications of the order (needs the order's secret token). */
+  async saveOrderPush(
+    slug: string,
+    token: string,
+    keys: { endpoint: string; p256dh: string; auth: string },
+  ): Promise<boolean> {
+    const { error } = await rpcPublic("save_order_push_subscription", {
+      p_slug: slug,
+      p_token: token,
+      p_endpoint: keys.endpoint,
+      p_p256dh: keys.p256dh,
+      p_auth: keys.auth,
+    });
+    return !error;
+  }
+
   /** Sends a cart. Errors keep the database code (+ detail: field or item id). */
   async placeOrder(input: {
     slug: string;
     tableCode: string | null;
     customerName: string;
+    customerEmail: string | null;
     items: { itemId: string; quantity: number; choices: string[]; note: string }[];
     note: string;
     locale: string;
@@ -164,6 +182,7 @@ export class PublicCafesService {
       p_slug: input.slug,
       p_table_code: input.tableCode,
       p_customer_name: input.customerName,
+      p_customer_email: input.customerEmail,
       p_items: input.items,
       p_note: input.note,
       p_locale: input.locale,
@@ -180,3 +199,20 @@ export class PublicCafesService {
 }
 
 export const publicCafes = new PublicCafesService();
+
+/**
+ * Asks the platform app to push a new order to the café's devices. The order token is the
+ * secret; the platform sends at most once. Failures are ignored (the board still updates live).
+ */
+export async function notifyNewOrder(slug: string, token: string): Promise<void> {
+  try {
+    await fetch(new URL("/api/push/new-order", publicEnv().NEXT_PUBLIC_PLATFORM_URL), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, token }),
+      cache: "no-store",
+    });
+  } catch {
+    /* platform unreachable: no push for this order */
+  }
+}
