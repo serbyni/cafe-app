@@ -7,6 +7,8 @@ import type { CafePalette } from "@/lib/cafes/theme";
 import { mediaUrl } from "@/lib/media/config";
 import type { PublicMenu, PublicMenuItem } from "@/lib/menu/public";
 import { MENU_TAGS, formatPrice } from "@/lib/menu/schema";
+import { useCart } from "@/components/order/cart-context";
+import { ItemOrder } from "@/components/order/item-order";
 
 /*
  * Customer menu (phone-first): search, sticky category chips that follow the scroll, item cards
@@ -38,8 +40,38 @@ function Photo({ item, className }: { item: PublicMenuItem; className: string })
   );
 }
 
-export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
+export function MenuView({
+  menu,
+  c,
+  canOrder = false,
+}: {
+  menu: PublicMenu;
+  c: CafePalette;
+  /** The café takes orders now (cart buttons shown). */
+  canOrder?: boolean;
+}) {
   const t = useTranslations("menu");
+  const to = useTranslations("order");
+  const cart = useCart();
+  const [justAdded, setJustAdded] = useState<string | null>(null);
+  const quickAdd = (item: PublicMenuItem) => {
+    if (!cart) return;
+    if (item.options.length) {
+      setOpen(item);
+      return;
+    }
+    cart.add({
+      itemId: item.id,
+      name: item.name,
+      choices: [],
+      choiceNames: [],
+      unitPrice: item.price,
+      quantity: 1,
+      note: "",
+    });
+    setJustAdded(item.id);
+    setTimeout(() => setJustAdded((id) => (id === item.id ? null : id)), 1500);
+  };
   const tt = useTranslations("tags");
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(menu.categories[0]?.id ?? "");
@@ -166,7 +198,21 @@ export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
             </h2>
             <ul className="flex flex-col gap-sm">
               {cat.items.map((item) => (
-                <li key={item.id}>
+                <li key={item.id} className="relative">
+                  {canOrder && cart && item.isAvailable ? (
+                    <button
+                      type="button"
+                      onClick={() => quickAdd(item)}
+                      aria-label={to("addName", { name: item.name })}
+                      className="absolute end-sm bottom-sm z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-sm"
+                      style={{ backgroundColor: c.primary, color: c.onPrimary }}
+                    >
+                      <Icon
+                        name={justAdded === item.id ? "check" : "add"}
+                        className="text-icon-lg"
+                      />
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => setOpen(item)}
@@ -225,7 +271,13 @@ export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
         ))
       )}
 
-      <ItemSheet item={open} currency={menu.currency} c={c} onClose={() => setOpen(null)} />
+      <ItemSheet
+        item={open}
+        currency={menu.currency}
+        c={c}
+        canOrder={canOrder}
+        onClose={() => setOpen(null)}
+      />
     </div>
   );
 }
@@ -235,11 +287,13 @@ function ItemSheet({
   item,
   currency,
   c,
+  canOrder,
   onClose,
 }: {
   item: PublicMenuItem | null;
   currency: string;
   c: CafePalette;
+  canOrder: boolean;
   onClose: () => void;
 }) {
   const t = useTranslations("menu");
@@ -312,6 +366,9 @@ function ItemSheet({
                   </li>
                 ))}
               </ul>
+            ) : null}
+            {canOrder && item.isAvailable ? (
+              <ItemOrder key={item.id} item={item} currency={currency} c={c} onAdded={onClose} />
             ) : null}
           </div>
         </div>
