@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { SiteFooter, SiteHeader, SuspendedCafe } from "@/components/cafe/site";
+import { MenuView } from "@/components/menu/menu-view";
 import { Icon } from "@/components/ui/icon";
 import { cafePalette } from "@/lib/cafes/theme";
 import { publicCafes } from "@/lib/data/services/public-cafes";
@@ -16,7 +17,7 @@ export async function generateMetadata({
   return { title: cafe ? { absolute: `${cafe.name} · Menu` } : "Café not found" };
 }
 
-/** Café menu (<slug>.<root>/menu). Placeholder until the menu module is built. */
+/** Café menu (<slug>.<root>/menu): the owner's menu, or "coming soon" while nothing is priced. */
 async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["params"] }) {
   const { slug } = await params;
   const cafe = await publicCafes.get(slug);
@@ -25,11 +26,15 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
   if (cafe.status === "suspended") return <SuspendedCafe name={cafe.name} c={c} />;
   // Table remembered from a QR scan (set by the proxy from ?table=<code>).
   const table = await publicCafes.tableLabel(slug, (await cookies()).get(TABLE_COOKIE)?.value);
+  const menu = await publicCafes.menu(slug);
+  const hasMenu = !!menu && menu.categories.length > 0;
 
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader name={cafe.name} c={c} showMenuButton={false} />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-md px-gutter py-xl">
+      <main
+        className={`mx-auto flex w-full max-w-3xl flex-1 flex-col gap-md px-gutter ${hasMenu ? "py-md" : "justify-center py-xl"}`}
+      >
         {table ? (
           <section
             aria-label="Your table"
@@ -56,18 +61,22 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
             </form>
           </section>
         ) : null}
-        <section className="rounded-2xl bg-surface-container-lowest p-lg text-center shadow-card-warm">
-          <span
-            className="mx-auto mb-sm flex h-12 w-12 items-center justify-center rounded-full"
-            style={{ backgroundColor: c.container, color: c.onContainer }}
-          >
-            <Icon name="restaurant_menu" className="text-icon-xl" />
-          </span>
-          <h1 className="text-headline-md text-on-surface">Menu coming soon</h1>
-          <p className="mt-xs text-body-sm text-on-surface-variant">
-            Soon you can browse the menu and order from your table right here.
-          </p>
-        </section>
+        {hasMenu ? (
+          <MenuView menu={menu} c={c} />
+        ) : (
+          <section className="rounded-2xl bg-surface-container-lowest p-lg text-center shadow-card-warm">
+            <span
+              className="mx-auto mb-sm flex h-12 w-12 items-center justify-center rounded-full"
+              style={{ backgroundColor: c.container, color: c.onContainer }}
+            >
+              <Icon name="restaurant_menu" className="text-icon-xl" />
+            </span>
+            <h1 className="text-headline-md text-on-surface">Menu coming soon</h1>
+            <p className="mt-xs text-body-sm text-on-surface-variant">
+              Soon you can browse the menu and order from your table right here.
+            </p>
+          </section>
+        )}
       </main>
       <SiteFooter cafe={cafe} hours={cafe.website?.footer.hours ?? null} c={c} />
     </div>

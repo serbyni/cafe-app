@@ -3,6 +3,8 @@ import type { CSSProperties } from "react";
 import { Icon } from "@/components/ui/icon";
 import type { CafePalette } from "@/lib/cafes/theme";
 import { mediaUrl } from "@/lib/media/config";
+import type { PublicMenuItem } from "@/lib/menu/public";
+import { formatPrice } from "@/lib/menu/schema";
 import type { Website, WebsiteImage, WebsiteSection } from "@/lib/website/schema";
 
 /*
@@ -255,10 +257,98 @@ export function Gallery({ s, c }: { s: Section<"gallery">; c: CafePalette }) {
   );
 }
 
-/** Enabled sections in the owner's order. */
-export function WebsiteSections({ website, c }: { website: Website; c: CafePalette }) {
+/** Signature specialties: the café's featured menu items (live from the menu). */
+export function Specialties({
+  s,
+  c,
+  items,
+  currency,
+}: {
+  s: Section<"specialties">;
+  c: CafePalette;
+  items: PublicMenuItem[];
+  currency: string;
+}) {
+  return (
+    <section className={`${container} flex flex-col gap-md py-lg`}>
+      <Eyebrow icon="stars" title={s.title} c={c}>
+        Signature specialties
+      </Eyebrow>
+      <h2 className="text-headline-md" style={{ color: c.primary }}>
+        {s.title}
+      </h2>
+      {s.text ? <p className="text-body-md text-on-surface-variant">{s.text}</p> : null}
+      <ul className="grid grid-cols-1 gap-sm sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((i) => (
+          <li
+            key={i.id}
+            className={`flex gap-md rounded-2xl bg-surface-container-lowest p-sm shadow-sm lg:flex-col ${i.isAvailable ? "" : "opacity-70"}`}
+          >
+            <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl lg:aspect-square lg:h-auto lg:w-full">
+              {i.image ? (
+                <Photo
+                  image={{ path: i.image.path, alt: i.image.alt || i.name }}
+                  className={`absolute inset-0 h-full w-full ${i.isAvailable ? "" : "grayscale"}`}
+                />
+              ) : (
+                <span
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{ backgroundColor: c.container, color: c.onContainer }}
+                >
+                  <Icon name="restaurant" className="text-icon-xl" />
+                </span>
+              )}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-xs">
+              <span className="flex items-start justify-between gap-sm">
+                <span className="font-semibold text-on-surface">{i.name}</span>
+                <span
+                  className="shrink-0 font-bold tabular-nums"
+                  style={{ color: c.primary }}
+                  dir="ltr"
+                >
+                  {formatPrice(i.price, currency)}
+                </span>
+              </span>
+              {i.description ? (
+                <span className="line-clamp-2 text-body-sm text-on-surface-variant">
+                  {i.description}
+                </span>
+              ) : null}
+              {!i.isAvailable ? (
+                <span className="text-caption font-semibold text-on-surface-variant uppercase">
+                  Sold out
+                </span>
+              ) : null}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href="/menu"
+        className="inline-flex w-fit items-center gap-xs rounded-full px-lg py-sm font-semibold"
+        style={{ backgroundColor: c.container, color: c.onContainer }}
+      >
+        <Icon name="restaurant_menu" className="text-icon-lg" /> View the full menu
+      </Link>
+    </section>
+  );
+}
+
+/** Enabled sections in the owner's order (specialties only when the menu has featured items). */
+export function WebsiteSections({
+  website,
+  c,
+  featured = [],
+  currency = "",
+}: {
+  website: Website;
+  c: CafePalette;
+  featured?: PublicMenuItem[];
+  currency?: string;
+}) {
   return website.sections
-    .filter((s) => s.enabled)
+    .filter((s) => s.enabled && (s.type !== "specialties" || featured.length > 0))
     .map((s) => {
       switch (s.type) {
         case "how_it_works":
@@ -267,6 +357,8 @@ export function WebsiteSections({ website, c }: { website: Website; c: CafePalet
           return <Story key={s.type} s={s} c={c} />;
         case "gallery":
           return <Gallery key={s.type} s={s} c={c} />;
+        case "specialties":
+          return <Specialties key={s.type} s={s} c={c} items={featured} currency={currency} />;
       }
     });
 }

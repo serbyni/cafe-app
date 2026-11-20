@@ -4,6 +4,7 @@ import { themeSeed } from "@/lib/cafes/theme";
 import { isCafeSlug } from "@/lib/routing/host";
 import { rpcPublic } from "@/lib/supabase/public";
 import { parseWebsite, type Website } from "@/lib/website/schema";
+import { publicMenuSchema, type PublicMenu } from "@/lib/menu/public";
 import { unwrap } from "../errors";
 
 /** What a café shows its customers (get_public_cafe). Suspended cafés: name + colours only. */
@@ -73,12 +74,33 @@ async function cachedTableLabel(slug: string, code: string): Promise<string | nu
   return r?.label ?? null;
 }
 
+/** Customer menu, cached like the café data (sold-out changes show within about a minute). */
+async function cachedMenu(slug: string): Promise<PublicMenu | null> {
+  "use cache";
+  cacheTag(cafeTag(slug));
+  cacheLife("minutes");
+  const raw = unwrap("get_public_menu", await rpcPublic("get_public_menu", { p_slug: slug }));
+  if (!raw) return null;
+  const parsed = publicMenuSchema.safeParse(raw);
+  if (!parsed.success) {
+    console.error("[data] get_public_menu: unexpected shape", parsed.error.issues.slice(0, 3));
+    return null;
+  }
+  return parsed.data;
+}
+
 /** Public café data for the café pages (anyone, signed in or not). */
 export class PublicCafesService {
   /** The café with this address, or null when it does not exist. */
   get(slug: string): Promise<PublicCafe | null> {
     if (!isCafeSlug(slug)) return Promise.resolve(null);
     return cachedPublicCafe(slug);
+  }
+
+  /** The menu (visible categories with visible priced items), or null (inactive café). */
+  menu(slug: string): Promise<PublicMenu | null> {
+    if (!isCafeSlug(slug)) return Promise.resolve(null);
+    return cachedMenu(slug);
   }
 
   /** Table name for a scanned table code, or null (unknown, retired or switched off). */
