@@ -3,13 +3,12 @@ import { cookies, headers } from "next/headers";
 import { setRequestLocale } from "next-intl/server";
 import { cache } from "react";
 import { publicCafes } from "@/lib/data/services/public-cafes";
-import { LANG_COOKIE, UI_LOCALES, pickLocale, uiLocaleFor } from "./config";
+import { DEFAULT_UI_LOCALE, LANG_COOKIE, pickLocale, uiLocaleFor } from "./config";
 
-/** Languages a café offers, its main language first (step 2: the café's own list). */
+/** Languages a café offers (chosen by the owner), its main language first. */
 export async function offeredLocales(slug: string): Promise<string[]> {
   const cafe = await publicCafes.get(slug);
-  const main = cafe?.locale ?? "en";
-  return [main, ...UI_LOCALES.filter((l) => l !== main)];
+  return cafe?.locales.length ? cafe.locales : [DEFAULT_UI_LOCALE];
 }
 
 /**

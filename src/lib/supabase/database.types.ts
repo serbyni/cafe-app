@@ -318,6 +318,7 @@ export type Database = {
           facebook_url: string;
           instagram_url: string;
           latitude: number;
+          locales: string[];
           longitude: number;
           name: string;
           phone: string;

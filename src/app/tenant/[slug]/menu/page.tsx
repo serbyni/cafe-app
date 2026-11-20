@@ -9,6 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import { applyCafeLocale } from "@/i18n/cafe-locale";
 import { cafePalette } from "@/lib/cafes/theme";
 import { publicCafes } from "@/lib/data/services/public-cafes";
+import { translateMenu } from "@/lib/menu/public";
 import { TABLE_COOKIE } from "@/lib/routing/route";
 
 export async function generateMetadata({
@@ -26,7 +27,7 @@ export async function generateMetadata({
 /** Café menu (<slug>.<root>/menu): the owner's menu, or "coming soon" while nothing is priced. */
 async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["params"] }) {
   const { slug } = await params;
-  await applyCafeLocale(slug);
+  const lang = await applyCafeLocale(slug);
   const t = await getTranslations("menu");
   const cafe = await publicCafes.get(slug);
   if (!cafe) notFound();
@@ -34,7 +35,8 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
   if (cafe.status === "suspended") return <SuspendedCafe name={cafe.name} slug={slug} c={c} />;
   // Table remembered from a QR scan (set by the proxy from ?table=<code>).
   const table = await publicCafes.tableLabel(slug, (await cookies()).get(TABLE_COOKIE)?.value);
-  const menu = await publicCafes.menu(slug);
+  const raw = await publicCafes.menu(slug);
+  const menu = raw ? translateMenu(raw, lang) : null;
   const hasMenu = !!menu && menu.categories.length > 0;
 
   return (

@@ -11,6 +11,8 @@ import { unwrap } from "../errors";
 export type PublicCafe =
   | {
       status: "active";
+      /** Languages the café offers, its main language first. */
+      locales: string[];
       slug: string;
       name: string;
       seed: string;
@@ -28,7 +30,14 @@ export type PublicCafe =
       /** Published website; null = the owner never published one (the page shows defaults). */
       website: Website | null;
     }
-  | { status: "suspended"; slug: string; name: string; seed: string; locale: string };
+  | {
+      status: "suspended";
+      slug: string;
+      name: string;
+      seed: string;
+      locale: string;
+      locales: string[];
+    };
 
 /** Cache tag of one café's public data (for on-demand refresh later). */
 export const cafeTag = (slug: string) => `cafe:${slug}`;
@@ -43,7 +52,14 @@ async function cachedPublicCafe(slug: string): Promise<PublicCafe | null> {
   cacheLife("minutes");
   const [r] = unwrap("get_public_cafe", await rpcPublic("get_public_cafe", { p_slug: slug }));
   if (!r) return null;
-  const base = { slug: r.slug, name: r.name, seed: themeSeed(r.theme), locale: r.default_locale };
+  const base = {
+    slug: r.slug,
+    name: r.name,
+    seed: themeSeed(r.theme),
+    locale: r.default_locale,
+    // Main language first (older rows / missing list → just the main language).
+    locales: r.locales?.length ? r.locales : [r.default_locale],
+  };
   if (r.status !== "active") return { ...base, status: "suspended" };
   return {
     ...base,
