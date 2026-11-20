@@ -301,6 +301,7 @@ export type Database = {
         Returns: undefined;
       };
       get_my_onboarding: { Args: never; Returns: Json };
+      get_public_menu: { Args: { p_slug: string }; Returns: Json };
       get_public_table: {
         Args: { p_code: string; p_slug: string };
         Returns: { label: string }[];

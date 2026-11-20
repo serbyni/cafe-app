@@ -280,3 +280,11 @@
     display: none;
   }
 }
+
+/* Horizontal chip rows that scroll without a visible scrollbar (still scrollable by touch/keys). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
