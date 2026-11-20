@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { CSSProperties } from "react";
 import { Icon } from "@/components/ui/icon";
 import type { CafePalette } from "@/lib/cafes/theme";
@@ -60,7 +61,7 @@ function Eyebrow({
   );
 }
 
-export function Hero({
+export async function Hero({
   hero,
   c,
   phone,
@@ -69,6 +70,7 @@ export function Hero({
   c: CafePalette;
   phone: string | null;
 }) {
+  const t = await getTranslations("home");
   const soft: CSSProperties = { backgroundColor: c.container, color: c.onContainer };
   return (
     <section
@@ -92,7 +94,7 @@ export function Hero({
             className="inline-flex flex-1 items-center justify-center gap-xs rounded-full px-lg py-sm font-semibold shadow-sm sm:flex-none"
             style={{ backgroundColor: c.primary, color: c.onPrimary }}
           >
-            <Icon name="menu_book" className="text-icon-lg" /> View menu
+            <Icon name="menu_book" className="text-icon-lg" /> {t("viewMenu")}
           </Link>
           {phone ? (
             <a
@@ -100,7 +102,7 @@ export function Hero({
               className="inline-flex flex-1 items-center justify-center gap-xs rounded-full px-lg py-sm font-semibold sm:flex-none"
               style={soft}
             >
-              <Icon name="call" className="text-icon-lg" /> Call us
+              <Icon name="call" className="text-icon-lg" /> {t("callUs")}
             </a>
           ) : null}
         </div>
@@ -132,25 +134,18 @@ export function Hero({
 }
 
 const STEPS = [
-  {
-    icon: "qr_code_scanner",
-    title: "Scan",
-    text: "Scan the QR code on your table — no app needed.",
-  },
-  { icon: "restaurant_menu", title: "Choose", text: "Browse the menu and pick what you like." },
-  {
-    icon: "notifications_active",
-    title: "Enjoy",
-    text: "We prepare your order. Pay at the counter.",
-  },
-];
+  { icon: "qr_code_scanner", key: "Scan" },
+  { icon: "restaurant_menu", key: "Choose" },
+  { icon: "notifications_active", key: "Enjoy" },
+] as const;
 
-export function HowItWorks({ s, c }: { s: Section<"how_it_works">; c: CafePalette }) {
+export async function HowItWorks({ s, c }: { s: Section<"how_it_works">; c: CafePalette }) {
+  const t = await getTranslations("home");
   return (
     <section className={`${container} py-lg`}>
       <div className="flex flex-col gap-md rounded-2xl bg-surface-container-low p-lg md:p-xl">
         <Eyebrow icon="qr_code_2" title={s.title} c={c}>
-          How it works
+          {t("eyebrowHow")}
         </Eyebrow>
         <h2 className="text-headline-md" style={{ color: c.primary }}>
           {s.title}
@@ -170,9 +165,11 @@ export function HowItWorks({ s, c }: { s: Section<"how_it_works">; c: CafePalett
               </span>
               <span>
                 <span className="block font-semibold text-on-surface">
-                  {i + 1}. {step.title}
+                  {i + 1}. {t(`step${step.key}Title`)}
                 </span>
-                <span className="block text-body-sm text-on-surface-variant">{step.text}</span>
+                <span className="block text-body-sm text-on-surface-variant">
+                  {t(`step${step.key}Text`)}
+                </span>
               </span>
             </li>
           ))}
@@ -182,7 +179,8 @@ export function HowItWorks({ s, c }: { s: Section<"how_it_works">; c: CafePalett
   );
 }
 
-export function Story({ s, c }: { s: Section<"story">; c: CafePalette }) {
+export async function Story({ s, c }: { s: Section<"story">; c: CafePalette }) {
+  const t = await getTranslations("home");
   return (
     <section className={`${container} grid grid-cols-1 items-start gap-lg py-lg md:grid-cols-2`}>
       {s.image ? (
@@ -193,7 +191,7 @@ export function Story({ s, c }: { s: Section<"story">; c: CafePalette }) {
       ) : null}
       <div className={`flex flex-col gap-md ${s.image ? "" : "md:col-span-2"}`}>
         <Eyebrow icon="auto_stories" title={s.title} c={c}>
-          Our story
+          {t("eyebrowStory")}
         </Eyebrow>
         <h2 className="text-headline-md" style={{ color: c.primary }}>
           {s.title}
@@ -237,11 +235,12 @@ export function Story({ s, c }: { s: Section<"story">; c: CafePalette }) {
   );
 }
 
-export function Gallery({ s, c }: { s: Section<"gallery">; c: CafePalette }) {
+export async function Gallery({ s, c }: { s: Section<"gallery">; c: CafePalette }) {
+  const t = await getTranslations("home");
   return (
     <section className={`${container} flex flex-col gap-md py-lg`}>
       <Eyebrow icon="photo_library" title={s.title} c={c}>
-        Gallery
+        {t("eyebrowGallery")}
       </Eyebrow>
       <h2 className="text-headline-md" style={{ color: c.primary }}>
         {s.title}
@@ -258,7 +257,7 @@ export function Gallery({ s, c }: { s: Section<"gallery">; c: CafePalette }) {
 }
 
 /** Signature specialties: the café's featured menu items (live from the menu). */
-export function Specialties({
+export async function Specialties({
   s,
   c,
   items,
@@ -269,10 +268,11 @@ export function Specialties({
   items: PublicMenuItem[];
   currency: string;
 }) {
+  const t = await getTranslations("home");
   return (
     <section className={`${container} flex flex-col gap-md py-lg`}>
       <Eyebrow icon="stars" title={s.title} c={c}>
-        Signature specialties
+        {t("eyebrowSpecialties")}
       </Eyebrow>
       <h2 className="text-headline-md" style={{ color: c.primary }}>
         {s.title}
@@ -317,7 +317,7 @@ export function Specialties({
               ) : null}
               {!i.isAvailable ? (
                 <span className="text-caption font-semibold text-on-surface-variant uppercase">
-                  Sold out
+                  {t("soldOut")}
                 </span>
               ) : null}
             </span>
@@ -329,7 +329,7 @@ export function Specialties({
         className="inline-flex w-fit items-center gap-xs rounded-full px-lg py-sm font-semibold"
         style={{ backgroundColor: c.container, color: c.onContainer }}
       >
-        <Icon name="restaurant_menu" className="text-icon-lg" /> View the full menu
+        <Icon name="restaurant_menu" className="text-icon-lg" /> {t("viewFullMenu")}
       </Link>
     </section>
   );

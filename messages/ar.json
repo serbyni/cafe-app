@@ -1,0 +1,72 @@
+{
+  "language": {
+    "label": "اللغة",
+    "choose": "اختر اللغة"
+  },
+  "site": {
+    "menuButton": "القائمة",
+    "openingHours": "ساعات العمل",
+    "visitUs": "زورونا",
+    "contact": "التواصل",
+    "poweredBy": "بدعم من Serbi",
+    "closed": "مغلق",
+    "instagram": "إنستغرام",
+    "facebook": "فيسبوك",
+    "suspendedTitle": "غير متاح مؤقتًا",
+    "suspendedBody": "صفحة هذا المقهى غير متاحة حاليًا. يُرجى المحاولة لاحقًا.",
+    "days": ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
+  },
+  "home": {
+    "viewMenu": "عرض القائمة",
+    "callUs": "اتصل بنا",
+    "eyebrowHow": "كيف يعمل",
+    "eyebrowStory": "قصتنا",
+    "eyebrowGallery": "معرض الصور",
+    "eyebrowSpecialties": "أطباقنا المميزة",
+    "stepScanTitle": "امسح",
+    "stepScanText": "امسح رمز QR الموجود على طاولتك — دون الحاجة إلى تطبيق.",
+    "stepChooseTitle": "اختر",
+    "stepChooseText": "تصفّح القائمة واختر ما يعجبك.",
+    "stepEnjoyTitle": "استمتع",
+    "stepEnjoyText": "نحضّر طلبك. الدفع عند الصندوق.",
+    "viewFullMenu": "عرض القائمة كاملة",
+    "soldOut": "نفد",
+    "metaDescription": "{name} — القائمة والطلب عبر Serbi.",
+    "defaultTitle": "مرحبًا بكم في {name}",
+    "defaultSubtitle": "تصفّح قائمتنا واطلب من طاولتك مباشرة — دون الحاجة إلى تطبيق.",
+    "defaultHighlight": "اطلب من طاولتك",
+    "defaultHowTitle": "اطلب من طاولتك",
+    "defaultHowText": "امسح رمز QR الموجود على طاولتك، واختر من القائمة وأرسل طلبك. الدفع عند الصندوق."
+  },
+  "menu": {
+    "title": "{name} · القائمة",
+    "youreAt": "أنت على",
+    "table": "الطاولة {label}",
+    "notYourTable": "ليست طاولتك؟",
+    "comingSoonTitle": "القائمة قريبًا",
+    "comingSoonBody": "قريبًا يمكنك تصفّح القائمة والطلب من طاولتك هنا.",
+    "search": "ابحث في القائمة…",
+    "noMatch": "لا توجد نتائج لـ «{query}».",
+    "soldOut": "نفد",
+    "soldOutNow": "نفد حاليًا",
+    "close": "إغلاق",
+    "categories": "أقسام القائمة",
+    "yourTable": "طاولتك"
+  },
+  "tags": {
+    "popular": "الأكثر طلبًا",
+    "new": "جديد",
+    "vegetarian": "نباتي",
+    "vegan": "نباتي صرف",
+    "gluten_free": "خالٍ من الغلوتين",
+    "spicy": "حار"
+  },
+  "notFound": {
+    "cafeTitle": "هذا المقهى غير موجود",
+    "cafeBody": "تحقّق من العنوان، أو امسح رمز QR الموجود على طاولتك مرة أخرى.",
+    "tagline": "Serbi — قوائم QR للمقاهي",
+    "pageTitle": "الصفحة غير موجودة",
+    "pageBody": "هذه الصفحة غير موجودة.",
+    "metaTitle": "المقهى غير موجود"
+  }
+}

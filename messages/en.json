@@ -1,0 +1,72 @@
+{
+  "language": {
+    "label": "Language",
+    "choose": "Choose a language"
+  },
+  "site": {
+    "menuButton": "Menu",
+    "openingHours": "Opening hours",
+    "visitUs": "Visit us",
+    "contact": "Contact",
+    "poweredBy": "Powered by Serbi",
+    "closed": "Closed",
+    "instagram": "Instagram",
+    "facebook": "Facebook",
+    "suspendedTitle": "Temporarily unavailable",
+    "suspendedBody": "This café's page is not available right now. Please check again later.",
+    "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+  },
+  "home": {
+    "viewMenu": "View menu",
+    "callUs": "Call us",
+    "eyebrowHow": "How it works",
+    "eyebrowStory": "Our story",
+    "eyebrowGallery": "Gallery",
+    "eyebrowSpecialties": "Signature specialties",
+    "stepScanTitle": "Scan",
+    "stepScanText": "Scan the QR code on your table — no app needed.",
+    "stepChooseTitle": "Choose",
+    "stepChooseText": "Browse the menu and pick what you like.",
+    "stepEnjoyTitle": "Enjoy",
+    "stepEnjoyText": "We prepare your order. Pay at the counter.",
+    "viewFullMenu": "View the full menu",
+    "soldOut": "Sold out",
+    "metaDescription": "{name} — menu and ordering on Serbi.",
+    "defaultTitle": "Welcome to {name}",
+    "defaultSubtitle": "Browse our menu and order right from your table — no app needed.",
+    "defaultHighlight": "Order from your table",
+    "defaultHowTitle": "Order from your table",
+    "defaultHowText": "Scan the QR code on your table, choose from the menu and send your order. Pay at the counter."
+  },
+  "menu": {
+    "title": "{name} · Menu",
+    "youreAt": "You're at",
+    "table": "Table {label}",
+    "notYourTable": "Not your table?",
+    "comingSoonTitle": "Menu coming soon",
+    "comingSoonBody": "Soon you can browse the menu and order from your table right here.",
+    "search": "Search the menu…",
+    "noMatch": "Nothing matches “{query}”.",
+    "soldOut": "Sold out",
+    "soldOutNow": "Sold out for now",
+    "close": "Close",
+    "categories": "Menu categories",
+    "yourTable": "Your table"
+  },
+  "tags": {
+    "popular": "Popular",
+    "new": "New",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "gluten_free": "Gluten-free",
+    "spicy": "Spicy"
+  },
+  "notFound": {
+    "cafeTitle": "This café doesn't exist",
+    "cafeBody": "Check the address, or scan the QR code on your table again.",
+    "tagline": "Serbi — QR menus for cafés",
+    "pageTitle": "Page not found",
+    "pageBody": "This page does not exist.",
+    "metaTitle": "Café not found"
+  }
+}

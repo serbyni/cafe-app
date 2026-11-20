@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "@/components/ui/icon";
 import type { CafePalette } from "@/lib/cafes/theme";
@@ -38,6 +39,8 @@ function Photo({ item, className }: { item: PublicMenuItem; className: string })
 }
 
 export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
+  const t = useTranslations("menu");
+  const tt = useTranslations("tags");
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(menu.categories[0]?.id ?? "");
   const [open, setOpen] = useState<PublicMenuItem | null>(null);
@@ -101,26 +104,22 @@ export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
     on ? { backgroundColor: c.primary, color: c.onPrimary } : {};
 
   return (
-    <div
-      dir={menu.locale === "ar" ? "rtl" : "ltr"}
-      lang={menu.locale}
-      className="flex flex-col gap-md"
-    >
+    <div className="flex flex-col gap-md">
       <label className="flex items-center gap-sm rounded-2xl bg-surface-container-low px-md py-sm">
         <Icon name="search" className="text-icon-lg text-on-surface-variant" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search the menu…"
-          aria-label="Search the menu"
+          placeholder={t("search")}
+          aria-label={t("search")}
           className="min-w-0 flex-1 bg-transparent text-body-md text-on-surface placeholder:text-outline focus:outline-none"
         />
       </label>
 
       {/* Sticky category chips (below the site header) */}
       <nav
-        aria-label="Menu categories"
+        aria-label={t("categories")}
         className="sticky top-14 z-30 -mx-gutter bg-background/95 px-gutter py-xs backdrop-blur"
       >
         <div ref={chipsRef} className="no-scrollbar flex gap-xs overflow-x-auto">
@@ -147,7 +146,7 @@ export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
 
       {categories.length === 0 ? (
         <p className="rounded-2xl bg-surface-container-lowest p-lg text-center text-on-surface-variant">
-          Nothing matches “{query}”.
+          {t("noMatch", { query })}
         </p>
       ) : (
         categories.map((cat) => (
@@ -157,7 +156,12 @@ export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
             aria-labelledby={`h-${cat.id}`}
             className="scroll-mt-32"
           >
-            <h2 id={`h-${cat.id}`} className="mb-sm text-headline-md" style={{ color: c.primary }}>
+            <h2
+              id={`h-${cat.id}`}
+              dir="auto"
+              className="mb-sm text-headline-md"
+              style={{ color: c.primary }}
+            >
               {cat.name}
             </h2>
             <ul className="flex flex-col gap-sm">
@@ -174,13 +178,15 @@ export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
                       <Photo item={item} className="absolute inset-0 h-full w-full" />
                       {!item.isAvailable ? (
                         <span className="absolute inset-x-0 bottom-0 bg-inverse-surface/85 py-0.5 text-center text-caption font-bold text-inverse-on-surface uppercase">
-                          Sold out
+                          {t("soldOut")}
                         </span>
                       ) : null}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col gap-xs py-xs">
                       <span className="flex items-start justify-between gap-sm">
-                        <span className="font-semibold text-on-surface">{item.name}</span>
+                        <span dir="auto" className="font-semibold text-on-surface">
+                          {item.name}
+                        </span>
                         <span
                           className="shrink-0 font-bold tabular-nums"
                           style={{ color: c.primary }}
@@ -190,19 +196,22 @@ export function MenuView({ menu, c }: { menu: PublicMenu; c: CafePalette }) {
                         </span>
                       </span>
                       {item.description ? (
-                        <span className="line-clamp-2 text-body-sm text-on-surface-variant">
+                        <span
+                          dir="auto"
+                          className="line-clamp-2 text-body-sm text-on-surface-variant"
+                        >
                           {item.description}
                         </span>
                       ) : null}
                       {tagsOf(item).length ? (
                         <span className="mt-auto flex flex-wrap gap-xs">
-                          {tagsOf(item).map((t) => (
+                          {tagsOf(item).map((tag) => (
                             <span
-                              key={t.value}
+                              key={tag.value}
                               className="inline-flex items-center gap-xs rounded-full px-sm text-caption"
                               style={{ backgroundColor: c.container, color: c.onContainer }}
                             >
-                              <Icon name={t.icon} className="text-icon-sm" /> {t.label}
+                              <Icon name={tag.icon} className="text-icon-sm" /> {tt(tag.value)}
                             </span>
                           ))}
                         </span>
@@ -233,6 +242,8 @@ function ItemSheet({
   c: CafePalette;
   onClose: () => void;
 }) {
+  const t = useTranslations("menu");
+  const tt = useTranslations("tags");
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -260,7 +271,7 @@ function ItemSheet({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={t("close")}
               className="absolute end-sm top-sm flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-lowest/90 text-on-surface shadow-sm"
             >
               <Icon name="close" className="text-icon-lg" />
@@ -268,7 +279,9 @@ function ItemSheet({
           </div>
           <div className="flex flex-col gap-sm p-lg">
             <div className="flex items-start justify-between gap-md">
-              <h2 className="text-headline-md text-on-surface">{item.name}</h2>
+              <h2 className="text-headline-md text-on-surface" dir="auto">
+                {item.name}
+              </h2>
               <p
                 className="shrink-0 text-headline-md font-bold tabular-nums"
                 style={{ color: c.primary }}
@@ -279,23 +292,23 @@ function ItemSheet({
             </div>
             {!item.isAvailable ? (
               <p className="w-fit rounded-full bg-inverse-surface px-md py-xs text-body-sm font-semibold text-inverse-on-surface">
-                Sold out for now
+                {t("soldOutNow")}
               </p>
             ) : null}
             {item.description ? (
-              <p className="text-body-md whitespace-pre-line text-on-surface-variant">
+              <p dir="auto" className="text-body-md whitespace-pre-line text-on-surface-variant">
                 {item.description}
               </p>
             ) : null}
             {tagsOf(item).length ? (
               <ul className="flex flex-wrap gap-xs pt-xs">
-                {tagsOf(item).map((t) => (
+                {tagsOf(item).map((tag) => (
                   <li
-                    key={t.value}
+                    key={tag.value}
                     className="inline-flex items-center gap-xs rounded-full px-md py-xs text-body-sm"
                     style={{ backgroundColor: c.container, color: c.onContainer }}
                   >
-                    <Icon name={t.icon} className="text-icon-md" /> {t.label}
+                    <Icon name={tag.icon} className="text-icon-md" /> {tt(tag.value)}
                   </li>
                 ))}
               </ul>
