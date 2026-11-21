@@ -22,6 +22,8 @@ export const orderSchema = z.object({
   number: num,
   kind: z.enum(["table", "takeaway"]),
   tableLabel: z.string().nullable(),
+  /** Previous table after a move. */
+  movedFromLabel: z.string().nullable().optional(),
   customerName: z.string(),
   note: z.string(),
   status: z.enum(ORDER_STATUSES),
@@ -98,4 +100,36 @@ export function dayTotals(orders: Order[]) {
     revenue: Math.round(counted.reduce((n, o) => n + o.subtotal, 0) * 1000) / 1000,
     unpaid: counted.filter((o) => !o.isPaid).length,
   };
+}
+
+/** A table customers can pick (get_public_tables): labels only, never QR codes. */
+export const publicTableSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  seats: z.coerce.number(),
+  area: z.string(),
+  free: z.boolean(),
+});
+export type PublicTable = z.infer<typeof publicTableSchema>;
+
+/** Free tables grouped by area (database order kept); `current` stays listed, marked by the picker. */
+export function groupTables(tables: PublicTable[], currentLabel: string | null) {
+  const groups: { area: string; tables: PublicTable[] }[] = [];
+  for (const t of tables) {
+    if (!t.free && t.label !== currentLabel) continue;
+    const g = groups.find((x) => x.area === t.area);
+    if (g) g.tables.push(t);
+    else groups.push({ area: t.area, tables: [t] });
+  }
+  return groups;
+}
+
+/** "too_far" detail from the database: {"distance": m, "radius": m}. */
+export function tooFarDetail(detail: string | undefined): { distance: number; radius: number } {
+  try {
+    const d = JSON.parse(detail ?? "") as { distance?: unknown; radius?: unknown };
+    return { distance: Number(d.distance) || 0, radius: Number(d.radius) || 0 };
+  } catch {
+    return { distance: 0, radius: 0 };
+  }
 }

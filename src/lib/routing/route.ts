@@ -8,6 +8,8 @@ export const NOT_FOUND_PATH = "/__not-found";
 export const PREVIEW_COOKIE = "serbi_preview_cafe";
 /** Cookie remembering the customer's table (host-only: one café). Set from ?table=<code>. */
 export const TABLE_COOKIE = "serbi_table";
+/** Table the customer picked from the list of free tables (overrides the scanned one). */
+export const TABLE_PICK_COOKIE = "serbi_table_pick";
 /** How long a scanned table is remembered (a visit, not forever). */
 export const TABLE_COOKIE_MAX_AGE = 60 * 60 * 4;
 

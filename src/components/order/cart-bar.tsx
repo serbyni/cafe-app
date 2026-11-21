@@ -3,19 +3,26 @@
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { placeOrderAction, type PlaceOrderResult } from "@/app/tenant/[slug]/actions";
+import {
+  chooseTableAction,
+  placeOrderAction,
+  type PlaceOrderResult,
+} from "@/app/tenant/[slug]/actions";
 import { Icon } from "@/components/ui/icon";
 import { cartCount, cartTotal, rememberOrder } from "@/lib/cart/cart";
 import type { CafePalette } from "@/lib/cafes/theme";
+import { isSpot, locate } from "@/lib/location/location";
 import { formatPrice } from "@/lib/menu/schema";
 import { useCart } from "./cart-context";
+import { spotText } from "./spot-text";
+import { TablePicker } from "./table-picker";
 
 /** Sticky "View order" bar + the order sheet (lines, note, table or takeaway name, send). */
 export function CartBar({
   slug,
   currency,
   c,
-  tableLabel,
+  tableLabel: scannedLabel,
 }: {
   slug: string;
   currency: string;
@@ -33,6 +40,11 @@ export function CartBar({
   const [website, setWebsite] = useState("");
   const [error, setError] = useState<{ text: string; itemId?: string } | null>(null);
   const [pending, start] = useTransition();
+  const [tableLabel, setTableLabel] = useState(scannedLabel);
+  const [picking, setPicking] = useState(false);
+  const [pickError, setPickError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [locating, setLocating] = useState(false);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -44,6 +56,7 @@ export function CartBar({
   const total = formatPrice(cartTotal(cart.cart), currency);
 
   const errorText = (r: Extract<PlaceOrderResult, { ok: false }>) => {
+    if (r.error === "location" || r.error === "tooFar") return spotText(t, r);
     if (r.error === "unavailable") {
       const line = cart.cart.lines.find((l) => l.itemId === r.itemId);
       return line ? t("errors.unavailable", { name: line.name }) : t("errors.unavailableSome");
@@ -54,7 +67,20 @@ export function CartBar({
   const send = () =>
     start(async () => {
       setError(null);
+      // Table order: the phone must be at the café (checked by the database, never stored).
+      let spot = null;
+      if (tableLabel) {
+        setLocating(true);
+        const s = await locate();
+        setLocating(false);
+        if (!isSpot(s)) {
+          setError({ text: spotText(t, s) });
+          return;
+        }
+        spot = s;
+      }
       const r = await placeOrderAction(slug, {
+        spot,
         customerName: tableLabel ? "" : name,
         customerEmail: email.trim(),
         note,
@@ -67,7 +93,10 @@ export function CartBar({
         })),
       });
       if (!r.ok) {
-        setError({ text: errorText(r), itemId: r.error === "unavailable" ? r.itemId : undefined });
+        setError({
+          text: errorText(r),
+          itemId: r.error === "unavailable" && "itemId" in r ? r.itemId : undefined,
+        });
         return;
       }
       rememberOrder(slug, { token: r.token, number: r.number });
@@ -190,7 +219,18 @@ export function CartBar({
                 style={{ backgroundColor: c.container, color: c.onContainer }}
               >
                 <Icon name="table_restaurant" className="text-icon-lg" />
-                {t("forTable", { label: tableLabel })}
+                <span className="flex-1">{t("forTable", { label: tableLabel })}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickError(null);
+                    setPicking(true);
+                  }}
+                  className="rounded-full bg-surface-container-lowest px-md py-xs text-body-sm font-semibold"
+                  style={{ color: c.primary }}
+                >
+                  {t("changeTable")}
+                </button>
               </p>
             ) : (
               <div className="flex flex-col gap-xs">
@@ -263,11 +303,41 @@ export function CartBar({
               {pending ? (
                 <Icon name="progress_activity" className="animate-spin text-icon-lg" />
               ) : null}
-              {pending ? t("sending") : t("send", { total })}
+              {locating ? t("locating") : pending ? t("sending") : t("send", { total })}
             </button>
+            {tableLabel ? (
+              <p className="flex items-start gap-xs text-caption text-on-surface-variant">
+                <Icon name="location_on" className="text-icon-sm" />
+                {t("locationWhy")}
+              </p>
+            ) : null}
           </div>
         </div>
       </dialog>
+      <TablePicker
+        slug={slug}
+        open={picking}
+        currentLabel={tableLabel}
+        c={c}
+        busy={pending}
+        error={pickError}
+        reloadKey={reloadKey}
+        onClose={() => setPicking(false)}
+        onPick={(tb) =>
+          start(async () => {
+            setPickError(null);
+            const r = await chooseTableAction(slug, tb.id);
+            if (!r.ok) {
+              setPickError(t("errors.tableTaken"));
+              setReloadKey((k) => k + 1);
+              return;
+            }
+            setTableLabel(r.label);
+            setPicking(false);
+            router.refresh();
+          })
+        }
+      />
     </>
   );
 }

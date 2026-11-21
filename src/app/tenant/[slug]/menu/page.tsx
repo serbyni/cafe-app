@@ -13,7 +13,7 @@ import { applyCafeLocale } from "@/i18n/cafe-locale";
 import { cafePalette } from "@/lib/cafes/theme";
 import { publicCafes } from "@/lib/data/services/public-cafes";
 import { translateMenu } from "@/lib/menu/public";
-import { TABLE_COOKIE } from "@/lib/routing/route";
+import { TABLE_COOKIE, TABLE_PICK_COOKIE } from "@/lib/routing/route";
 
 export async function generateMetadata({
   params,
@@ -37,7 +37,12 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
   const c = cafePalette(cafe.seed);
   if (cafe.status === "suspended") return <SuspendedCafe name={cafe.name} slug={slug} c={c} />;
   // Table remembered from a QR scan (set by the proxy from ?table=<code>).
-  const table = await publicCafes.tableLabel(slug, (await cookies()).get(TABLE_COOKIE)?.value);
+  const jar = await cookies();
+  const picked = jar.get(TABLE_PICK_COOKIE)?.value;
+  // A table picked from the list wins over the scanned one.
+  const table =
+    (picked && (await publicCafes.tables(slug)).find((t) => t.id === picked)?.label) ||
+    (await publicCafes.tableLabel(slug, jar.get(TABLE_COOKIE)?.value));
   const raw = await publicCafes.menu(slug);
   const menu = raw ? translateMenu(raw, lang) : null;
   const hasMenu = !!menu && menu.categories.length > 0;

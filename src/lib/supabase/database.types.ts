@@ -313,6 +313,22 @@ export type Database = {
           p_note: string;
           p_slug: string;
           p_table_code: string | null;
+          p_table_id?: string | null;
+          p_lat?: number | null;
+          p_lng?: number | null;
+          p_accuracy?: number | null;
+        };
+        Returns: Json;
+      };
+      get_public_tables: { Args: { p_slug: string }; Returns: Json };
+      move_order_table: {
+        Args: {
+          p_slug: string;
+          p_token: string;
+          p_table_id: string;
+          p_lat?: number | null;
+          p_lng?: number | null;
+          p_accuracy?: number | null;
         };
         Returns: Json;
       };
