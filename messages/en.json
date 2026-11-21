@@ -111,7 +111,12 @@
       "name": "Enter your first name.",
       "table": "This table's QR code is no longer valid — ask the staff.",
       "generic": "Your order could not be sent. Please try again.",
-      "email": "Check your email address."
+      "email": "Check your email address.",
+      "location": "Allow location access for this site to order at a table, then try again.",
+      "locationTimeout": "We couldn't get your location. Check that location is on and try again.",
+      "tooFar": "You seem to be about {distance} m from the café. Table orders work within {radius} m.",
+      "tableTaken": "This table was just taken — pick another one.",
+      "moveClosed": "This order can't change table any more."
     },
     "status": {
       "metaTitle": "Order #{number}",
@@ -151,6 +156,20 @@
       "install": "On iPhone, keep this page open — we'll show updates here with a sound.",
       "failed": "Notifications could not be turned on.",
       "sound": "Turn on sound for updates"
-    }
+    },
+    "changeTable": "Change",
+    "changeTableAfter": "Change table",
+    "tablesTitle": "Choose your table",
+    "tablesHint": "Free tables right now. Your order stays as it is.",
+    "yourTable": "Your table",
+    "seats": "{count, plural, one {# seat} other {# seats}}",
+    "noFreeTables": "No other table is free right now — ask the staff.",
+    "refresh": "Refresh",
+    "loadingTables": "Loading tables…",
+    "locating": "Checking you're at the café…",
+    "locationWhy": "To order at a table we check your phone is at the café. Your location isn't saved.",
+    "movedTo": "Your order is now at table {label}.",
+    "movedFrom": "Moved from table {label}",
+    "tryAgain": "Try again"
   }
 }

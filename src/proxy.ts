@@ -4,6 +4,7 @@ import {
   PREVIEW_COOKIE,
   TABLE_COOKIE,
   TABLE_COOKIE_MAX_AGE,
+  TABLE_PICK_COOKIE,
   routeRequest,
   tableParam,
 } from "@/lib/routing/route";
@@ -48,6 +49,8 @@ export function proxy(request: NextRequest) {
     } else {
       res.cookies.delete(TABLE_COOKIE);
     }
+    // A new scan replaces a table picked from the list.
+    res.cookies.delete(TABLE_PICK_COOKIE);
     if (decision.action === "rewrite-and-remember") {
       res.cookies.set(PREVIEW_COOKIE, decision.slug, {
         path: "/",

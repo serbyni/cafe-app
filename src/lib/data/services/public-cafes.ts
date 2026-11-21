@@ -6,7 +6,14 @@ import { publicEnv } from "@/lib/env";
 import { rpcPublic } from "@/lib/supabase/public";
 import { parseWebsite, type Website } from "@/lib/website/schema";
 import { publicMenuSchema, type PublicMenu } from "@/lib/menu/public";
-import { openingSchema, orderSchema, type Order } from "@/lib/orders/schema";
+import type { Spot } from "@/lib/location/location";
+import {
+  openingSchema,
+  orderSchema,
+  publicTableSchema,
+  type Order,
+  type PublicTable,
+} from "@/lib/orders/schema";
 import { z } from "zod";
 
 const orderingSchema = openingSchema.extend({ acceptingOrders: z.boolean() });
@@ -166,10 +173,42 @@ export class PublicCafesService {
     return !error;
   }
 
+  /** Active tables with whether they are free right now (never cached). */
+  async tables(slug: string): Promise<PublicTable[]> {
+    if (!isCafeSlug(slug)) return [];
+    const { data, error } = await rpcPublic("get_public_tables", { p_slug: slug });
+    if (error || !data) return [];
+    const parsed = z.array(publicTableSchema).safeParse(data);
+    return parsed.success ? parsed.data : [];
+  }
+
+  /** Moves an open table order to a free table (order token = the proof; phone near the café). */
+  async moveTable(
+    slug: string,
+    token: string,
+    tableId: string,
+    spot: Spot | null,
+  ): Promise<{ ok: true; tableLabel: string } | { ok: false; code: string; detail?: string }> {
+    const { data, error } = await rpcPublic("move_order_table", {
+      p_slug: slug,
+      p_token: token,
+      p_table_id: tableId,
+      p_lat: spot?.lat ?? null,
+      p_lng: spot?.lng ?? null,
+      p_accuracy: spot?.accuracy ?? null,
+    });
+    if (error) return { ok: false, code: error.message, detail: error.details };
+    const r = data as { tableLabel?: string } | null;
+    return r?.tableLabel ? { ok: true, tableLabel: r.tableLabel } : { ok: false, code: "unknown" };
+  }
+
   /** Sends a cart. Errors keep the database code (+ detail: field or item id). */
   async placeOrder(input: {
     slug: string;
     tableCode: string | null;
+    /** Table picked from the list (wins over the scanned code). */
+    tableId: string | null;
+    spot: Spot | null;
     customerName: string;
     customerEmail: string | null;
     items: { itemId: string; quantity: number; choices: string[]; note: string }[];
@@ -181,6 +220,10 @@ export class PublicCafesService {
     const { data, error } = await rpcPublic("place_order", {
       p_slug: input.slug,
       p_table_code: input.tableCode,
+      p_table_id: input.tableId,
+      p_lat: input.spot?.lat ?? null,
+      p_lng: input.spot?.lng ?? null,
+      p_accuracy: input.spot?.accuracy ?? null,
       p_customer_name: input.customerName,
       p_customer_email: input.customerEmail,
       p_items: input.items,
@@ -214,5 +257,19 @@ export async function notifyNewOrder(slug: string, token: string): Promise<void>
     });
   } catch {
     /* platform unreachable: no push for this order */
+  }
+}
+
+/** Asks the platform app to tell the café's devices that a customer moved their order. */
+export async function notifyTableMoved(slug: string, token: string): Promise<void> {
+  try {
+    await fetch(new URL("/api/push/table-moved", publicEnv().NEXT_PUBLIC_PLATFORM_URL), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, token }),
+      cache: "no-store",
+    });
+  } catch {
+    /* platform unreachable: the board still updates live */
   }
 }

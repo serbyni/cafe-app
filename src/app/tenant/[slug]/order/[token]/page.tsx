@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SiteHeader, SuspendedCafe } from "@/components/cafe/site";
+import { ChangeTable } from "@/components/order/change-table";
 import { NotifyButton } from "@/components/order/notify-button";
 import { OrderLive } from "@/components/order/order-live";
 import { Icon } from "@/components/ui/icon";
@@ -92,6 +93,15 @@ async function OrderPage({
                 );
               })}
             </ol>
+          ) : null}
+          {order.kind === "table" && order.movedFromLabel ? (
+            <p className="flex items-center gap-xs text-caption text-on-surface-variant">
+              <Icon name="swap_horiz" className="text-icon-sm" />
+              {(await getTranslations("order"))("movedFrom", { label: order.movedFromLabel })}
+            </p>
+          ) : null}
+          {order.kind === "table" && !closed ? (
+            <ChangeTable slug={slug} token={token} tableLabel={order.tableLabel} c={c} />
           ) : null}
           {!closed && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? (
             <NotifyButton

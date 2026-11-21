@@ -111,7 +111,12 @@
       "name": "Saisissez votre prénom.",
       "table": "Le QR code de cette table n'est plus valide — demandez au personnel.",
       "generic": "Votre commande n'a pas pu être envoyée. Réessayez.",
-      "email": "Vérifiez votre adresse e-mail."
+      "email": "Vérifiez votre adresse e-mail.",
+      "location": "Autorisez l'accès à la position pour ce site afin de commander à table, puis réessayez.",
+      "locationTimeout": "Impossible d'obtenir votre position. Vérifiez que la localisation est activée et réessayez.",
+      "tooFar": "Vous semblez être à environ {distance} m du café. Les commandes à table fonctionnent à moins de {radius} m.",
+      "tableTaken": "Cette table vient d'être prise — choisissez-en une autre.",
+      "moveClosed": "Cette commande ne peut plus changer de table."
     },
     "status": {
       "metaTitle": "Commande n°{number}",
@@ -151,6 +156,20 @@
       "install": "Sur iPhone, gardez cette page ouverte — les mises à jour s'affichent ici avec un son.",
       "failed": "Impossible d'activer les notifications.",
       "sound": "Activer le son des mises à jour"
-    }
+    },
+    "changeTable": "Changer",
+    "changeTableAfter": "Changer de table",
+    "tablesTitle": "Choisissez votre table",
+    "tablesHint": "Tables libres en ce moment. Votre commande reste la même.",
+    "yourTable": "Votre table",
+    "seats": "{count, plural, one {# place} other {# places}}",
+    "noFreeTables": "Aucune autre table n'est libre pour le moment — demandez au personnel.",
+    "refresh": "Actualiser",
+    "loadingTables": "Chargement des tables…",
+    "locating": "Vérification que vous êtes au café…",
+    "locationWhy": "Pour commander à table, nous vérifions que votre téléphone est au café. Votre position n'est pas enregistrée.",
+    "movedTo": "Votre commande est maintenant à la table {label}.",
+    "movedFrom": "Déplacée depuis la table {label}",
+    "tryAgain": "Réessayer"
   }
 }
