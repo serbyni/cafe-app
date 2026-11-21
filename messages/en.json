@@ -110,7 +110,8 @@
       "tooMany": "Too many orders at once. Please wait a moment or ask at the counter.",
       "name": "Enter your first name.",
       "table": "This table's QR code is no longer valid — ask the staff.",
-      "generic": "Your order could not be sent. Please try again."
+      "generic": "Your order could not be sent. Please try again.",
+      "email": "Check your email address."
     },
     "status": {
       "metaTitle": "Order #{number}",
@@ -140,6 +141,16 @@
       "reason": "Reason: {reason}",
       "paid": "Paid"
     },
-    "trackOrder": "Your order #{number} — follow it"
+    "trackOrder": "Your order #{number} — follow it",
+    "email": "Email for your receipt (optional)",
+    "emailHint": "We email your receipt when the café accepts your order. Used only for this order.",
+    "notify": {
+      "button": "Get notified on this phone",
+      "on": "You'll be notified of every update.",
+      "blocked": "Notifications are blocked in your browser settings.",
+      "install": "On iPhone, keep this page open — we'll show updates here with a sound.",
+      "failed": "Notifications could not be turned on.",
+      "sound": "Turn on sound for updates"
+    }
   }
 }

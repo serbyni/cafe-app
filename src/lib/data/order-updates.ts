@@ -9,7 +9,8 @@ import { publicEnv } from "@/lib/env";
 export function subscribeToOrder(token: string, onChange: () => void): () => void {
   const env = publicEnv();
   const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
+    // No session here; own storage key so it never meets another Supabase client's auth state.
+    auth: { persistSession: false, autoRefreshToken: false, storageKey: "serbi-order-updates" },
   });
   const channel = db
     .channel(`order:${token}`)

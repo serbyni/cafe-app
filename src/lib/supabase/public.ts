@@ -38,5 +38,7 @@ export async function rpcPublic<F extends DbFunctionName>(
       },
     };
   }
-  return { data: (await res.json()) as DbReturns<F>, error: null };
+  // Functions returning void answer 204 / an empty body.
+  const text = await res.text();
+  return { data: (text ? JSON.parse(text) : null) as DbReturns<F>, error: null };
 }

@@ -74,6 +74,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Skip static assets and image optimisation.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
+    // sw.js: the push service worker is a static file (same on every café host).
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js$|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
   ],
 };

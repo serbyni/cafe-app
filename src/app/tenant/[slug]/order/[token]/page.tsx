@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SiteHeader, SuspendedCafe } from "@/components/cafe/site";
+import { NotifyButton } from "@/components/order/notify-button";
 import { OrderLive } from "@/components/order/order-live";
 import { Icon } from "@/components/ui/icon";
 import { applyCafeLocale } from "@/i18n/cafe-locale";
@@ -37,7 +38,7 @@ async function OrderPage({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <OrderLive slug={slug} token={token} closed={closed} />
+      <OrderLive slug={slug} token={token} status={order.status} closed={closed} />
       <SiteHeader name={cafe.name} slug={slug} c={c} />
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-md px-gutter py-md">
         <section className="flex flex-col gap-sm rounded-2xl bg-surface-container-lowest p-lg shadow-card-warm">
@@ -91,6 +92,14 @@ async function OrderPage({
                 );
               })}
             </ol>
+          ) : null}
+          {!closed && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? (
+            <NotifyButton
+              slug={slug}
+              token={token}
+              vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+              c={c}
+            />
           ) : null}
           {!closed ? (
             <p className="flex items-center gap-xs text-caption text-on-surface-variant">
