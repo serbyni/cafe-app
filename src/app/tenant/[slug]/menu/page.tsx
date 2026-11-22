@@ -8,6 +8,7 @@ import { MenuView } from "@/components/menu/menu-view";
 import { CartBar } from "@/components/order/cart-bar";
 import { CartProvider } from "@/components/order/cart-context";
 import { TrackOrder } from "@/components/order/track-order";
+import { SwitchTableButton } from "@/components/order/switch-table-button";
 import { Icon } from "@/components/ui/icon";
 import { applyCafeLocale } from "@/i18n/cafe-locale";
 import { cafePalette } from "@/lib/cafes/theme";
@@ -74,14 +75,7 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
               <p className="text-caption uppercase">{t("youreAt")}</p>
               <p className="truncate text-headline-md font-bold">{t("table", { label: table })}</p>
             </div>
-            {/* Full page load (not client navigation) so the cleared table isn't served from the
-                router's cache. */}
-            <form action="/menu" className="shrink-0">
-              <input type="hidden" name="table" value="" />
-              <button type="submit" className="text-body-sm underline underline-offset-2">
-                {t("notYourTable")}
-              </button>
-            </form>
+            <SwitchTableButton slug={slug} tableLabel={table} c={c} />
           </section>
         ) : null}
         <TrackOrder slug={slug} c={c} />
@@ -100,7 +94,13 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
           <CartProvider slug={slug}>
             <MenuView menu={menu} c={c} canOrder={canOrder} />
             {canOrder ? (
-              <CartBar slug={slug} currency={menu.currency} c={c} tableLabel={table} />
+              <CartBar
+                key={table ?? "takeaway"}
+                slug={slug}
+                currency={menu.currency}
+                c={c}
+                tableLabel={table}
+              />
             ) : null}
             {/* Room for the sticky "View order" bar. */}
             {canOrder ? <div className="h-20" aria-hidden="true" /> : null}
@@ -118,7 +118,7 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
           </section>
         )}
       </main>
-      <SiteFooter cafe={cafe} hours={cafe.website?.footer.hours ?? null} c={c} />
+      <SiteFooter cafe={cafe} hours={cafe.openingHours} c={c} />
     </div>
   );
 }

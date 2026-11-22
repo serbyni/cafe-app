@@ -125,7 +125,7 @@ function ContactLink({
   );
 }
 
-/** Opening hours (when the café published them) + address, phone, email and social links. */
+/** Opening hours (from the café's Settings, when set) + address, phone, email and social links. */
 export async function SiteFooter({
   cafe,
   hours,
