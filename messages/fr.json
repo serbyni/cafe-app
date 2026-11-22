@@ -171,5 +171,27 @@
     "movedTo": "Votre commande est maintenant à la table {label}.",
     "movedFrom": "Déplacée depuis la table {label}",
     "tryAgain": "Réessayer"
+  },
+  "book": {
+    "subtitle": "Menu",
+    "contents": "Sommaire",
+    "continued": "(suite)",
+    "cover": "Couverture",
+    "backCover": "Dos",
+    "pages": "Pages",
+    "prev": "Page précédente",
+    "next": "Page suivante",
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer",
+    "fullscreen": "Plein écran",
+    "exitFullscreen": "Quitter le plein écran",
+    "listView": "Vue liste",
+    "bookView": "Vue livre",
+    "bookLabel": "Livre du menu de {name}",
+    "noWebgl": "La vue livre n'est pas disponible sur cet appareil.",
+    "gotIt": "J'ai compris",
+    "hintTap": "Touchez la couverture pour ouvrir le menu",
+    "hintSwipe": "Glissez à gauche ou à droite pour tourner les pages",
+    "hintZoom": "Pincez ou touchez deux fois pour zoomer"
   }
 }

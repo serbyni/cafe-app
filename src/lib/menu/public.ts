@@ -9,6 +9,10 @@ const i18n = z.record(z.string(), z.record(z.string(), z.string())).catch({});
 
 export const publicMenuSchema = z.object({
   currency: z.string(),
+  /** The café only shows its menu (no online ordering). */
+  menuOnly: z.boolean().catch(false),
+  /** "book" = 3D book (menu-only cafés), otherwise the list. */
+  display: z.enum(["list", "book"]).catch("list"),
   locale: z.string(),
   /** Languages the café offers, its main language first. */
   locales: z.array(z.string()).catch([]),
