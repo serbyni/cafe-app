@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { MENU_TAGS, optionsSchema, type MenuTag, type OptionGroup } from "./schema";
+import { optionsSchema, type OptionGroup } from "./schema";
+import { BUILTIN_TAGS, tagName, type BuiltinTag } from "./tags";
 
 /* Customer menu as returned by get_public_menu (visible categories, visible priced items). */
-
-const TAG_VALUES = MENU_TAGS.map((t) => t.value) as [MenuTag, ...MenuTag[]];
 
 /** Translations of a record: { "en": { "name": "…", "description": "…" } } (bad shape → none). */
 const i18n = z.record(z.string(), z.record(z.string(), z.string())).catch({});
@@ -13,6 +12,18 @@ export const publicMenuSchema = z.object({
   locale: z.string(),
   /** Languages the café offers, its main language first. */
   locales: z.array(z.string()).catch([]),
+  /** The café's visible tags, in its order (built-ins: key set, name null = default translation). */
+  tagList: z
+    .array(
+      z.object({
+        id: z.string(),
+        key: z.enum(BUILTIN_TAGS).nullable().catch(null),
+        name: z.string().nullable(),
+        icon: z.string(),
+        i18n: i18n,
+      }),
+    )
+    .catch([]),
   categories: z.array(
     z.object({
       id: z.string(),
@@ -28,10 +39,8 @@ export const publicMenuSchema = z.object({
             .object({ path: z.string(), alt: z.string().catch("") })
             .nullable()
             .catch(null),
-          // Unknown tags (newer app version) are dropped instead of failing the whole menu.
-          tags: z
-            .array(z.string())
-            .transform((t) => t.filter((x): x is MenuTag => (TAG_VALUES as string[]).includes(x))),
+          /** Ids of the item's visible tags (tagList). */
+          tagIds: z.array(z.string()).catch([]),
           isAvailable: z.boolean(),
           isFeatured: z.boolean(),
           i18n: i18n.optional(),
@@ -81,4 +90,20 @@ function translateOptions(groups: OptionGroup[], lang: string): OptionGroup[] {
     name: name(g.i18n, g.name),
     choices: g.choices.map((c) => ({ ...c, name: name(c.i18n, c.name) })),
   }));
+}
+
+export type ShownTag = { id: string; name: string; icon: string };
+
+/**
+ * The café's tags in the visitor's language, by id: a translation, else the café's own name,
+ * else (built-in, not renamed) the app's translation `builtin(key)`.
+ */
+export function tagsById(
+  menu: PublicMenu,
+  lang: string,
+  builtin: (key: BuiltinTag) => string,
+): Map<string, ShownTag> {
+  return new Map(
+    menu.tagList.map((t) => [t.id, { id: t.id, icon: t.icon, name: tagName(t, lang, builtin) }]),
+  );
 }

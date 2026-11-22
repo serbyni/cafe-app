@@ -1,12 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "@/components/ui/icon";
 import type { CafePalette } from "@/lib/cafes/theme";
 import { mediaUrl } from "@/lib/media/config";
-import type { PublicMenu, PublicMenuItem } from "@/lib/menu/public";
-import { MENU_TAGS, formatPrice } from "@/lib/menu/schema";
+import { tagsById, type PublicMenu, type PublicMenuItem, type ShownTag } from "@/lib/menu/public";
+import { formatPrice } from "@/lib/menu/schema";
 import { useCart } from "@/components/order/cart-context";
 import { ItemOrder } from "@/components/order/item-order";
 
@@ -15,8 +15,6 @@ import { ItemOrder } from "@/components/order/item-order";
  * and an item sheet. Café colours are runtime values → inline styles. Ordering ("+") comes with
  * the ordering module; the card layout leaves room for it.
  */
-
-const tagsOf = (item: PublicMenuItem) => MENU_TAGS.filter((t) => item.tags.includes(t.value));
 
 function Photo({ item, className }: { item: PublicMenuItem; className: string }) {
   if (!item.image) {
@@ -73,6 +71,11 @@ export function MenuView({
     setTimeout(() => setJustAdded((id) => (id === item.id ? null : id)), 1500);
   };
   const tt = useTranslations("tags");
+  const locale = useLocale();
+  // The café's tags in the visitor's language (built-ins: the app's translation).
+  const tagMap = useMemo(() => tagsById(menu, locale, (k) => tt(k)), [menu, locale, tt]);
+  const tagsOf = (item: PublicMenuItem): ShownTag[] =>
+    item.tagIds.map((id) => tagMap.get(id)).filter((x): x is ShownTag => !!x);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(menu.categories[0]?.id ?? "");
   const [open, setOpen] = useState<PublicMenuItem | null>(null);
@@ -253,11 +256,11 @@ export function MenuView({
                         <span className="mt-auto flex flex-wrap gap-xs">
                           {tagsOf(item).map((tag) => (
                             <span
-                              key={tag.value}
+                              key={tag.id}
                               className="inline-flex items-center gap-xs rounded-full px-sm text-caption"
                               style={{ backgroundColor: c.container, color: c.onContainer }}
                             >
-                              <Icon name={tag.icon} className="text-icon-sm" /> {tt(tag.value)}
+                              <Icon name={tag.icon} className="text-icon-sm" /> {tag.name}
                             </span>
                           ))}
                         </span>
@@ -276,6 +279,7 @@ export function MenuView({
         currency={menu.currency}
         c={c}
         canOrder={canOrder}
+        tags={open ? tagsOf(open) : []}
         onClose={() => setOpen(null)}
       />
     </div>
@@ -288,16 +292,18 @@ function ItemSheet({
   currency,
   c,
   canOrder,
+  tags,
   onClose,
 }: {
   item: PublicMenuItem | null;
   currency: string;
   c: CafePalette;
   canOrder: boolean;
+  /** The item's tags, already named in the visitor's language. */
+  tags: ShownTag[];
   onClose: () => void;
 }) {
   const t = useTranslations("menu");
-  const tt = useTranslations("tags");
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -354,15 +360,15 @@ function ItemSheet({
                 {item.description}
               </p>
             ) : null}
-            {tagsOf(item).length ? (
+            {tags.length ? (
               <ul className="flex flex-wrap gap-xs pt-xs">
-                {tagsOf(item).map((tag) => (
+                {tags.map((tag) => (
                   <li
-                    key={tag.value}
+                    key={tag.id}
                     className="inline-flex items-center gap-xs rounded-full px-md py-xs text-body-sm"
                     style={{ backgroundColor: c.container, color: c.onContainer }}
                   >
-                    <Icon name={tag.icon} className="text-icon-md" /> {tt(tag.value)}
+                    <Icon name={tag.icon} className="text-icon-md" /> {tag.name}
                   </li>
                 ))}
               </ul>
