@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  parseHours,
   defaultWebsite,
   translatableFields,
   translateWebsite,
@@ -54,7 +55,7 @@ describe("websiteSchema", () => {
   it("limits highlights and validates hours", () => {
     const w = base();
     w.hero.highlights = Array.from({ length: 5 }, () => ({ icon: "star", label: "x" }));
-    w.footer.hours[2] = { closed: false, open: "09:00", close: "09:00" };
+    w.footer!.hours[2] = { closed: false, open: "09:00", close: "09:00" };
     const e = errorsOf(w);
     expect(e["hero.highlights"]).toBeDefined();
     expect(e["footer.hours.2.close"]).toBeDefined();
@@ -68,7 +69,7 @@ describe("websiteSchema", () => {
 
 describe("groupHours", () => {
   it("groups consecutive days with the same hours", () => {
-    const hours = base().footer.hours;
+    const hours = base().footer!.hours;
     hours[6] = { closed: true, open: "09:00", close: "20:00" };
     expect(groupHours(hours)).toEqual([
       { days: "Monday – Friday", hours: "08:00 – 20:00" },
@@ -102,5 +103,18 @@ describe("website translations", () => {
     w.i18n = { en: { "hero.title": "Hi" } };
     expect(websiteSchema.safeParse(w).success).toBe(true);
     expect(websiteSchema.safeParse({ ...w, i18n: { english: {} } }).success).toBe(false);
+  });
+});
+
+describe("parseHours (Settings → Opening hours)", () => {
+  it("reads 7 valid days, otherwise null", () => {
+    const week = Array.from({ length: 7 }, () => ({
+      closed: false,
+      open: "08:00",
+      close: "20:00",
+    }));
+    expect(parseHours(week)).toEqual(week);
+    expect(parseHours(week.slice(1))).toBeNull();
+    expect(parseHours(null)).toBeNull();
   });
 });

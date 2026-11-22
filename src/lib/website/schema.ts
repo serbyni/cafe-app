@@ -105,7 +105,7 @@ const sectionSchema = z.discriminatedUnion("type", [
   specialtiesSchema,
 ]);
 
-const daySchema = z
+export const daySchema = z
   .object({ closed: z.boolean(), open: time, close: time })
   .refine((d) => d.closed || d.open !== d.close, {
     path: ["close"],
@@ -117,7 +117,8 @@ export const websiteSchema = z
     version: z.literal(WEBSITE_VERSION),
     hero: heroSchema,
     sections: z.array(sectionSchema).max(SECTION_TYPES.length),
-    footer: z.object({ hours: z.array(daySchema).length(7) }),
+    /** Old place of the opening hours (now get_public_cafe.opening_hours): unused. */
+    footer: z.object({ hours: z.array(daySchema).length(7) }).optional(),
     /** Translations: { "en": { "hero.title": "…", "sections.story.text": "…" } } (see translatableFields). */
     i18n: z
       .record(
@@ -152,7 +153,13 @@ export const websiteSchema = z
 export type Website = z.infer<typeof websiteSchema>;
 export type WebsiteSection = Website["sections"][number];
 export type WebsiteImage = z.infer<typeof imageSchema>;
-export type OpeningDay = Website["footer"]["hours"][number];
+export type OpeningDay = z.infer<typeof daySchema>;
+
+/** Opening hours from the café's Settings (7 days, Monday first), or null when none are set. */
+export function parseHours(raw: unknown): OpeningDay[] | null {
+  const r = z.array(daySchema).length(7).safeParse(raw);
+  return r.success ? r.data : null;
+}
 
 /** Zod issues → { "hero.title": "…", "sections.1.text": "…" } (first message per field). */
 export function websiteErrors(error: z.ZodError): Record<string, string> {

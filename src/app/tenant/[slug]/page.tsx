@@ -88,7 +88,7 @@ async function CafeHome({ params }: { params: PageProps<"/tenant/[slug]">["param
           currency={menu?.currency ?? ""}
         />
       </main>
-      <SiteFooter cafe={cafe} hours={cafe.website ? website.footer.hours : null} c={c} />
+      <SiteFooter cafe={cafe} hours={cafe.openingHours} c={c} />
     </div>
   );
 }

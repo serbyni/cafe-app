@@ -4,7 +4,7 @@ import { themeSeed } from "@/lib/cafes/theme";
 import { isCafeSlug } from "@/lib/routing/host";
 import { publicEnv } from "@/lib/env";
 import { rpcPublic } from "@/lib/supabase/public";
-import { parseWebsite, type Website } from "@/lib/website/schema";
+import { parseHours, parseWebsite, type OpeningDay, type Website } from "@/lib/website/schema";
 import { publicMenuSchema, type PublicMenu } from "@/lib/menu/public";
 import type { Spot } from "@/lib/location/location";
 import {
@@ -42,6 +42,8 @@ export type PublicCafe =
       instagram: string | null;
       /** Published website; null = the owner never published one (the page shows defaults). */
       website: Website | null;
+      /** Settings → Opening hours (footer); null = none set. */
+      openingHours: OpeningDay[] | null;
     }
   | {
       status: "suspended";
@@ -88,6 +90,7 @@ async function cachedPublicCafe(slug: string): Promise<PublicCafe | null> {
     facebook: r.facebook_url,
     instagram: r.instagram_url,
     website: parseWebsite(r.website),
+    openingHours: parseHours(r.opening_hours),
   };
 }
 

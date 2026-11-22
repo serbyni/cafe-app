@@ -375,6 +375,7 @@ export type Database = {
           status: string;
           theme: Json;
           website: Json;
+          opening_hours: Json | null;
         }[];
       };
       get_my_owner: {
