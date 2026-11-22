@@ -171,5 +171,27 @@
     "movedTo": "Your order is now at table {label}.",
     "movedFrom": "Moved from table {label}",
     "tryAgain": "Try again"
+  },
+  "book": {
+    "subtitle": "Menu",
+    "contents": "Contents",
+    "continued": "(continued)",
+    "cover": "Cover",
+    "backCover": "Back cover",
+    "pages": "Pages",
+    "prev": "Previous page",
+    "next": "Next page",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fullscreen": "Full screen",
+    "exitFullscreen": "Exit full screen",
+    "listView": "List view",
+    "bookView": "Book view",
+    "bookLabel": "{name} menu book",
+    "noWebgl": "The book view isn't available on this device.",
+    "gotIt": "Got it",
+    "hintTap": "Tap the cover to open the menu",
+    "hintSwipe": "Swipe left or right to turn the pages",
+    "hintZoom": "Pinch or double-tap to zoom"
   }
 }

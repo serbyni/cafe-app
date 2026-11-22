@@ -196,6 +196,46 @@
   --text-icon-3xl: 48px;
   --text-icon-3xl--line-height: 1;
 
+  /* 3D book gesture hint — animate-book-tap / -swipe / -pinch */
+  --animate-book-tap: book-tap 1.1s ease-in-out infinite;
+  --animate-book-swipe: book-swipe 1.4s ease-in-out infinite;
+  --animate-book-pinch: book-pinch 1.4s ease-in-out infinite;
+  @keyframes book-tap {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(0.82);
+    }
+  }
+  @keyframes book-swipe {
+    0% {
+      transform: translateX(18px);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      transform: translateX(-18px);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-18px);
+      opacity: 0;
+    }
+  }
+  @keyframes book-pinch {
+    0%,
+    100% {
+      transform: scale(0.85);
+    }
+    50% {
+      transform: scale(1.15);
+    }
+  }
+
   /* Layout widths — max-w-card-sm, max-w-card-md (use these instead of max-w-lg / max-w-xl) */
   --container-card-sm: 32rem;
   --container-card-md: 36rem;

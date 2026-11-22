@@ -1,3 +1,12 @@
+import { BookView } from "@/components/book/book-view";
+import type { BookLabels } from "@/components/book/menu-book";
+import { isRtl } from "@/i18n/config";
+import type { BookInput } from "@/lib/book/paginate";
+import { tagsById } from "@/lib/menu/public";
+import { formatPrice } from "@/lib/menu/schema";
+import { mediaUrl } from "@/lib/media/config";
+import { groupHours } from "@/lib/website/schema";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
@@ -29,8 +38,15 @@ export async function generateMetadata({
 }
 
 /** Café menu (<slug>.<root>/menu): the owner's menu, or "coming soon" while nothing is priced. */
-async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["params"] }) {
+async function CafeMenu({
+  params,
+  searchParams,
+}: {
+  params: PageProps<"/tenant/[slug]/menu">["params"];
+  searchParams: PageProps<"/tenant/[slug]/menu">["searchParams"];
+}) {
   const { slug } = await params;
+  const { view } = await searchParams;
   const lang = await applyCafeLocale(slug);
   const t = await getTranslations("menu");
   const cafe = await publicCafes.get(slug);
@@ -52,6 +68,70 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
   const canOrder = !!ordering?.acceptingOrders && ordering.openNow;
   const to = await getTranslations("order");
   const days = to("weekdays").split("|");
+  const menuOnly = !!menu?.menuOnly;
+  const book = hasMenu && menu.display === "book" && view !== "list" ? await bookData() : null;
+
+  /** Everything the 3D book needs, in the visitor's language (drawn in the browser). */
+  async function bookData() {
+    if (!menu || cafe?.status !== "active") return null;
+    const [tb, ts, tt] = await Promise.all([
+      getTranslations("book"),
+      getTranslations("site"),
+      getTranslations("tags"),
+    ]);
+    const tags = tagsById(menu, lang, (k) => tt(k));
+    const input: BookInput = {
+      title: cafe.name,
+      subtitle: tb("subtitle"),
+      contentsTitle: tb("contents"),
+      backTitle: ts("openingHours"),
+      hours: cafe.openingHours
+        ? groupHours(cafe.openingHours, { days: ts.raw("days") as string[], closed: ts("closed") })
+        : [],
+      lines: [
+        [cafe.address, cafe.city].filter(Boolean).join(", "),
+        cafe.phone ?? "",
+        cafe.email ?? "",
+      ].filter(Boolean),
+      categories: menu.categories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        icon: cat.icon,
+        items: cat.items.map((it) => ({
+          id: it.id,
+          name: it.name,
+          description: it.description,
+          price: formatPrice(it.price, menu.currency),
+          tags: it.tagIds
+            .map((id) => tags.get(id))
+            .filter((x) => !!x)
+            .map((x) => ({ name: x!.name, icon: x!.icon })),
+          image: it.image ? mediaUrl(it.image.path) : null,
+        })),
+      })),
+    };
+    const labels: BookLabels = {
+      continued: tb("continued"),
+      cover: tb("cover"),
+      backCover: tb("backCover"),
+      pages: tb("pages"),
+      prev: tb("prev"),
+      next: tb("next"),
+      contents: tb("contents"),
+      zoomIn: tb("zoomIn"),
+      zoomOut: tb("zoomOut"),
+      fullscreen: tb("fullscreen"),
+      exitFullscreen: tb("exitFullscreen"),
+      listView: tb("listView"),
+      bookLabel: tb("bookLabel", { name: cafe.name }),
+      noWebgl: tb("noWebgl"),
+      gotIt: tb("gotIt"),
+      hintTap: tb("hintTap"),
+      hintSwipe: tb("hintSwipe"),
+      hintZoom: tb("hintZoom"),
+    };
+    return { input, labels, bookView: tb("bookView") };
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -59,7 +139,7 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
       <main
         className={`mx-auto flex w-full max-w-3xl flex-1 flex-col gap-md px-gutter ${hasMenu ? "py-md" : "justify-center py-xl"}`}
       >
-        {table ? (
+        {table && !menuOnly ? (
           <section
             aria-label={t("yourTable")}
             className="flex items-center gap-md rounded-2xl p-md shadow-sm"
@@ -78,7 +158,7 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
             <SwitchTableButton slug={slug} tableLabel={table} c={c} />
           </section>
         ) : null}
-        <TrackOrder slug={slug} c={c} />
+        {menuOnly ? null : <TrackOrder slug={slug} c={c} />}
         {ordering?.acceptingOrders && !ordering.openNow ? (
           <p
             role="status"
@@ -90,8 +170,44 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
               : to("closedNow")}
           </p>
         ) : null}
-        {hasMenu ? (
+        {book ? (
+          <>
+            <BookView
+              input={book.input}
+              c={c}
+              rtl={isRtl(lang)}
+              labels={book.labels}
+              listHref="/menu?view=list"
+            />
+            {/* For screen readers: the whole menu as text. */}
+            <section className="sr-only" aria-label={t("title", { name: cafe.name })}>
+              {book.input.categories.map((cat) => (
+                <div key={cat.id}>
+                  <h2>{cat.name}</h2>
+                  <ul>
+                    {cat.items.map((it) => (
+                      <li key={it.id}>
+                        {it.name} — {it.price}
+                        {it.description ? `. ${it.description}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          </>
+        ) : hasMenu ? (
           <CartProvider slug={slug}>
+            {menu.display === "book" ? (
+              <Link
+                href="/menu"
+                className="flex w-fit items-center gap-xs self-end rounded-full bg-surface-container-lowest px-md py-xs text-body-sm font-semibold shadow-sm"
+                style={{ color: c.primary }}
+              >
+                <Icon name="menu_book" className="text-icon-lg" />
+                {(await getTranslations("book"))("bookView")}
+              </Link>
+            ) : null}
             <MenuView menu={menu} c={c} canOrder={canOrder} />
             {canOrder ? (
               <CartBar
@@ -123,10 +239,10 @@ async function CafeMenu({ params }: { params: PageProps<"/tenant/[slug]/menu">["
   );
 }
 
-export default function CafeMenuPage({ params }: PageProps<"/tenant/[slug]/menu">) {
+export default function CafeMenuPage({ params, searchParams }: PageProps<"/tenant/[slug]/menu">) {
   return (
     <Suspense fallback={<div className="min-h-screen bg-background" />}>
-      <CafeMenu params={params} />
+      <CafeMenu params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
