@@ -29,6 +29,8 @@ export const publicMenuSchema = z.object({
       id: z.string(),
       name: z.string(),
       i18n: i18n.optional(),
+      /** Optional icon chosen by the owner (Material Symbols name). */
+      icon: z.string().nullable().catch(null).default(null),
       items: z.array(
         z.object({
           id: z.string(),

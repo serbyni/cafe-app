@@ -14,6 +14,7 @@ const raw = {
     {
       id: "c",
       name: "Cafés",
+      icon: "coffee",
       items: [
         {
           id: "i",
@@ -35,6 +36,7 @@ describe("public menu tags", () => {
     const m = publicMenuSchema.parse(raw);
     expect(m.tagList[2].key).toBeNull();
     expect(m.categories[0].items[0].tagIds).toEqual(["t2", "t1"]);
+    expect(m.categories[0].icon).toBe("coffee");
   });
 
   it("names tags in the visitor's language", () => {

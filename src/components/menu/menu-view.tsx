@@ -168,11 +168,12 @@ export function MenuView({
                 pinnedUntil.current = Date.now() + 1200;
                 setActive(cat.id);
               }}
-              className={`shrink-0 rounded-full px-md py-xs text-body-sm font-semibold whitespace-nowrap ${
+              className={`inline-flex shrink-0 items-center gap-xs rounded-full px-md py-xs text-body-sm font-semibold whitespace-nowrap ${
                 active === cat.id ? "shadow-sm" : "bg-surface-container text-on-surface-variant"
               }`}
               style={chip(active === cat.id)}
             >
+              {cat.icon ? <Icon name={cat.icon} className="text-icon-md" /> : null}
               {cat.name}
             </a>
           ))}
@@ -194,9 +195,10 @@ export function MenuView({
             <h2
               id={`h-${cat.id}`}
               dir="auto"
-              className="mb-sm text-headline-md"
+              className="mb-sm flex items-center gap-sm text-headline-md"
               style={{ color: c.primary }}
             >
+              {cat.icon ? <Icon name={cat.icon} className="text-icon-xl" /> : null}
               {cat.name}
             </h2>
             <ul className="flex flex-col gap-sm">
